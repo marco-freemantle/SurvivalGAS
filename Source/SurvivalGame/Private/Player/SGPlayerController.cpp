@@ -61,12 +61,13 @@ void ASGPlayerController::SetupInputComponent()
 	SGInputComponent->BindAction(LookUpAction, ETriggerEvent::Triggered, this, &ASGPlayerController::LookUp);
 	SGInputComponent->BindAction(TurnAction, ETriggerEvent::Triggered, this, &ASGPlayerController::Turn);
 	SGInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ASGPlayerController::Jump);
-	SGInputComponent->BindAction(EquipAction, ETriggerEvent::Started, this, &ASGPlayerController::Equip);
-	SGInputComponent->BindAction(EquipAction, ETriggerEvent::Completed, this, &ASGPlayerController::SetbCanEquipTrue);
+	SGInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &ASGPlayerController::Interact);
+	SGInputComponent->BindAction(InteractAction, ETriggerEvent::Completed, this, &ASGPlayerController::SetbCanEquipTrue);
 	SGInputComponent->BindAction(CrouchAction, ETriggerEvent::Started, this, &ASGPlayerController::Crouch);
 	SGInputComponent->BindAction(CrouchAction, ETriggerEvent::Completed, this, &ASGPlayerController::UnCrouch);
 	SGInputComponent->BindAction(PauseGameAction, ETriggerEvent::Started, this, &ASGPlayerController::PauseGame);
 	SGInputComponent->BindAction(SwapWeaponsAction, ETriggerEvent::Started, this, &ASGPlayerController::SwapWeapons);
+	SGInputComponent->BindAction(LockonAction, ETriggerEvent::Started, this, &ASGPlayerController::Lockon);
 }
 
 void ASGPlayerController::Move(const FInputActionValue& InputActionValue)
@@ -117,7 +118,7 @@ void ASGPlayerController::Jump(const FInputActionValue& InputActionValue)
 	}
 }
 
-void ASGPlayerController::Equip(const FInputActionValue& InputActionValue)
+void ASGPlayerController::Interact(const FInputActionValue& InputActionValue)
 {
 	if(!bCanEquip) return;
 	if (ASGCharacter* SGCharacter = Cast<ASGCharacter>(GetCharacter()))
@@ -149,6 +150,21 @@ void ASGPlayerController::SwapWeapons(const FInputActionValue& InputActionValue)
 	if (ASGCharacter* SGCharacter = Cast<ASGCharacter>(GetCharacter()))
 	{
 		
+	}
+}
+
+void ASGPlayerController::Lockon(const FInputActionValue& InputActionValue)
+{
+	if (ASGCharacter* SGCharacter = Cast<ASGCharacter>(GetCharacter()))
+	{
+		if(SGCharacter->bIsLockedOnTarget)
+		{
+			SGCharacter->DisenganeLockon();
+		}
+		else
+		{
+			SGCharacter->EngageLockon();
+		}
 	}
 }
 

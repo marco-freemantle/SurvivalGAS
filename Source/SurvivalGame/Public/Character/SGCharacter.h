@@ -18,13 +18,28 @@ class SURVIVALGAME_API ASGCharacter : public ACharacter
 public:
 	ASGCharacter();
 	virtual void Tick(float DeltaTime) override;
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	void EngageLockon();
+	void DisenganeLockon();
+	bool bIsLockedOnTarget = false;
 
 protected:
 	virtual void BeginPlay() override;
 	void AimOffset(float DeltaTime);
 
 private:
+	UPROPERTY()
+	TArray<AActor*> LockonTargets;
+	
+	UPROPERTY()
+	AActor* LockonTarget;
+
+	bool bShouldRotate = false;
+	
+	FTimerHandle BreakLockonTimer;
+
+	void CheckLockonDistance();
+	
 	UPROPERTY(VisibleAnywhere, Category = Camera)
 	USpringArmComponent* CameraBoom;
 

@@ -50,7 +50,7 @@ private:
 	TObjectPtr<UInputAction> JumpAction;
 
 	UPROPERTY(EditAnywhere, Category = "Input")
-	TObjectPtr<UInputAction> EquipAction;
+	TObjectPtr<UInputAction> InteractAction;
 
 	UPROPERTY(EditAnywhere, Category = "Input")
 	TObjectPtr<UInputAction> CrouchAction;
@@ -61,14 +61,18 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Input")
 	TObjectPtr<UInputAction> PauseGameAction;
 
+	UPROPERTY(EditAnywhere, Category = "Input")
+	TObjectPtr<UInputAction> LockonAction;
+
 	void Move(const FInputActionValue& InputActionValue);
 	void LookUp(const FInputActionValue& InputActionValue);
 	void Turn(const FInputActionValue& InputActionValue);
 	void Jump(const FInputActionValue& InputActionValue);
-	void Equip(const FInputActionValue& InputActionValue);
+	void Interact(const FInputActionValue& InputActionValue);
 	void Crouch(const FInputActionValue& InputActionValue);
 	void UnCrouch(const FInputActionValue& InputActionValue);
 	void SwapWeapons(const FInputActionValue& InputActionValue);
+	void Lockon(const FInputActionValue& InputActionValue);
 	void SetbCanEquipTrue();
 
 	bool bCanEquip = true;

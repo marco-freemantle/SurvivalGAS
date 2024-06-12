@@ -5,6 +5,8 @@
 #include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Interfaces/LockonInterface.h"
+#include "Kismet/KismetMathLibrary.h"
 
 ASGCharacter::ASGCharacter()
 {
@@ -40,12 +42,11 @@ void ASGCharacter::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	AimOffset(DeltaTime);
-}
-
-void ASGCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
+	if(bShouldRotate && LockonTarget)
+	{
+		const FRotator PlayerRot = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(),LockonTarget->GetActorLocation());
+		GetController()->SetControlRotation(PlayerRot);
+	}
 }
 
 void ASGCharacter::AimOffset(float DeltaTime)
@@ -105,6 +106,70 @@ void ASGCharacter::TurnInPlace(float DeltaTime)
 		{
 			TurningInPlace = ETurningInPlace::ETIP_NotTurning;
 			StartingAimRotation = FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);
+		}
+	}
+}
+
+void ASGCharacter::EngageLockon()
+{
+	FCollisionShape SphereShape = FCollisionShape::MakeSphere(750.0f);
+	TArray<FHitResult> OutResults;
+	GetWorld()->SweepMultiByChannel(OutResults, GetActorLocation(), GetActorLocation(), FQuat::Identity, ECC_Pawn, SphereShape);
+
+	for (auto Hit : OutResults)
+	{
+		if(Hit.GetActor()->Implements<ULockonInterface>())
+		{
+			LockonTargets.Add(Hit.GetActor());
+		}
+	}
+
+	float Distance = 1000000.f;
+
+	for (const auto Target : LockonTargets)
+	{
+		if(FVector::Dist(GetActorLocation(), Target->GetActorLocation()) <= Distance)
+		{
+			Distance = FVector::Dist(GetActorLocation(), Target->GetActorLocation());
+			LockonTarget = Target;
+		}
+	}
+
+	if(LockonTarget)
+	{
+		bIsLockedOnTarget = true;
+		bShouldRotate = true;
+		GetController()->SetIgnoreLookInput(true);
+		GetCharacterMovement()->bOrientRotationToMovement = false;
+		GetCharacterMovement()->bUseControllerDesiredRotation = true;
+
+		if (GetWorld())
+		{
+			GetWorld()->GetTimerManager().SetTimer(BreakLockonTimer, this, &ASGCharacter::CheckLockonDistance, 0.15f, true);
+		}
+	}
+}
+
+void ASGCharacter::DisenganeLockon()
+{
+	LockonTargets = TArray<AActor*>();
+	LockonTarget = nullptr;
+
+	bIsLockedOnTarget = false;
+	bShouldRotate = false;
+	GetController()->ResetIgnoreLookInput();
+	GetCharacterMovement()->bOrientRotationToMovement = true;
+	GetCharacterMovement()->bUseControllerDesiredRotation = false;
+}
+
+void ASGCharacter::CheckLockonDistance()
+{
+	if(LockonTarget)
+	{
+		if(FVector::Dist(GetActorLocation(), LockonTarget->GetActorLocation()) > 1000)
+		{
+			DisenganeLockon();
+			BreakLockonTimer.Invalidate();
 		}
 	}
 }
