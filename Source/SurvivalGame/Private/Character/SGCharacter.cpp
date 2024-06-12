@@ -6,6 +6,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Interfaces/LockonInterface.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Net/UnrealNetwork.h"
 
 ASGCharacter::ASGCharacter()
 {
@@ -30,17 +31,24 @@ ASGCharacter::ASGCharacter()
 	MinNetUpdateFrequency = 33.f;
 }
 
+void ASGCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ASGCharacter, LockonTarget);
+	DOREPLIFETIME(ASGCharacter, bIsLockedOnTarget);
+}
+
 void ASGCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
 void ASGCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	
-	if(bShouldRotate && LockonTarget)
+	if(LockonTarget && IsLocallyControlled())
 	{
 		const FRotator PlayerRot = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(),LockonTarget->GetActorLocation());
 		GetController()->SetControlRotation(PlayerRot);
@@ -75,23 +83,21 @@ void ASGCharacter::EngageLockon()
 		if (CurrentDistance < MinDistance)
 		{
 			MinDistance = CurrentDistance;
+			
 			LockonTarget = Target;
+			ServerSetLockonTarget(LockonTarget);
 		}
 	}
 
 	if (LockonTarget)
 	{
 		bIsLockedOnTarget = true;
-		bShouldRotate = true;
 		if (AController* SGController = GetController())
 		{
 			SGController->SetIgnoreLookInput(true);
 		}
-		if (UCharacterMovementComponent* SGCharacterMovement = GetCharacterMovement())
-		{
-			SGCharacterMovement->bOrientRotationToMovement = false;
-			SGCharacterMovement->bUseControllerDesiredRotation = true;
-		}
+		GetCharacterMovement()->bOrientRotationToMovement = false;
+		GetCharacterMovement()->bUseControllerDesiredRotation = true;
 
 		if (GetWorld())
 		{
@@ -105,20 +111,17 @@ void ASGCharacter::DisengageLockon()
 {
 	LockonTargets.Empty();
 	LockonTarget = nullptr;
+	ServerSetLockonTarget(nullptr);
 
 	bIsLockedOnTarget = false;
-	bShouldRotate = false;
 
 	if (AController* SGController = GetController())
 	{
 		SGController->ResetIgnoreLookInput();
 	}
-
-	if (UCharacterMovementComponent* SGCharacterMovement = GetCharacterMovement())
-	{
-		SGCharacterMovement->bOrientRotationToMovement = true;
-		SGCharacterMovement->bUseControllerDesiredRotation = false;
-	}
+	
+	GetCharacterMovement()->bOrientRotationToMovement = true;
+	GetCharacterMovement()->bUseControllerDesiredRotation = false;
 }
 
 void ASGCharacter::SwitchLockonTarget(bool bSwitchLeft)
@@ -141,6 +144,7 @@ void ASGCharacter::SwitchLockonTarget(bool bSwitchLeft)
 			{
 				SwitchDistance = Distance;
 				LockonTarget = PotentialTarget;
+				ServerSetLockonTarget(LockonTarget);
 				bSwitchedSuccessfully = true;
 			}
 		}
@@ -158,6 +162,24 @@ void ASGCharacter::SwitchLockonTargetLeft()
 void ASGCharacter::SwitchLockonTargetRight()
 {
 	SwitchLockonTarget(false);
+}
+
+void ASGCharacter::ServerSetLockonTarget_Implementation(AActor* NewLockonTarget)
+{
+	LockonTarget = NewLockonTarget;
+	bIsLockedOnTarget = LockonTarget ? true : false;
+	if(bIsLockedOnTarget)
+	{
+		GetCharacterMovement()->bOrientRotationToMovement = false;
+		GetCharacterMovement()->bUseControllerDesiredRotation = true;
+		bIsLockedOnTarget = true;
+	}
+	else
+	{
+		GetCharacterMovement()->bOrientRotationToMovement = true;
+		GetCharacterMovement()->bUseControllerDesiredRotation = false;
+		bIsLockedOnTarget = false;
+	}
 }
 
 void ASGCharacter::CheckLockonDistance()

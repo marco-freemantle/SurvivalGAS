@@ -18,6 +18,7 @@ class SURVIVALGAME_API ASGCharacter : public ACharacter
 public:
 	ASGCharacter();
 	virtual void Tick(float DeltaTime) override;
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	void FindLockonTargets();
 	void EngageLockon();
@@ -25,6 +26,8 @@ public:
 	void SwitchLockonTarget(bool bSwitchLeft);
 	void SwitchLockonTargetLeft();
 	void SwitchLockonTargetRight();
+
+	UPROPERTY(Replicated)
 	bool bIsLockedOnTarget = false;
 
 protected:
@@ -34,10 +37,11 @@ private:
 	UPROPERTY()
 	TArray<AActor*> LockonTargets;
 	
-	UPROPERTY()
+	UPROPERTY(Replicated)
 	AActor* LockonTarget;
 
-	bool bShouldRotate = false;
+	UFUNCTION(Server, Reliable)
+	void ServerSetLockonTarget(AActor* NewLockonTarget);
 	
 	FTimerHandle BreakLockonTimer;
 
