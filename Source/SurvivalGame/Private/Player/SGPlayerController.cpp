@@ -55,18 +55,18 @@ void ASGPlayerController::SetupInputComponent()
 {
 	Super::SetupInputComponent();
 
-	USGInputComponent* VBInputComponent = CastChecked<USGInputComponent>(InputComponent);
+	USGInputComponent* SGInputComponent = CastChecked<USGInputComponent>(InputComponent);
 
-	VBInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ASGPlayerController::Move);
-	VBInputComponent->BindAction(LookUpAction, ETriggerEvent::Triggered, this, &ASGPlayerController::LookUp);
-	VBInputComponent->BindAction(TurnAction, ETriggerEvent::Triggered, this, &ASGPlayerController::Turn);
-	VBInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ASGPlayerController::Jump);
-	VBInputComponent->BindAction(EquipAction, ETriggerEvent::Started, this, &ASGPlayerController::Equip);
-	VBInputComponent->BindAction(EquipAction, ETriggerEvent::Completed, this, &ASGPlayerController::SetbCanEquipTrue);
-	VBInputComponent->BindAction(CrouchAction, ETriggerEvent::Started, this, &ASGPlayerController::Crouch);
-	VBInputComponent->BindAction(CrouchAction, ETriggerEvent::Completed, this, &ASGPlayerController::UnCrouch);
-	VBInputComponent->BindAction(PauseGameAction, ETriggerEvent::Started, this, &ASGPlayerController::PauseGame);
-	VBInputComponent->BindAction(SwapWeaponsAction, ETriggerEvent::Started, this, &ASGPlayerController::SwapWeapons);
+	SGInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ASGPlayerController::Move);
+	SGInputComponent->BindAction(LookUpAction, ETriggerEvent::Triggered, this, &ASGPlayerController::LookUp);
+	SGInputComponent->BindAction(TurnAction, ETriggerEvent::Triggered, this, &ASGPlayerController::Turn);
+	SGInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ASGPlayerController::Jump);
+	SGInputComponent->BindAction(EquipAction, ETriggerEvent::Started, this, &ASGPlayerController::Equip);
+	SGInputComponent->BindAction(EquipAction, ETriggerEvent::Completed, this, &ASGPlayerController::SetbCanEquipTrue);
+	SGInputComponent->BindAction(CrouchAction, ETriggerEvent::Started, this, &ASGPlayerController::Crouch);
+	SGInputComponent->BindAction(CrouchAction, ETriggerEvent::Completed, this, &ASGPlayerController::UnCrouch);
+	SGInputComponent->BindAction(PauseGameAction, ETriggerEvent::Started, this, &ASGPlayerController::PauseGame);
+	SGInputComponent->BindAction(SwapWeaponsAction, ETriggerEvent::Started, this, &ASGPlayerController::SwapWeapons);
 }
 
 void ASGPlayerController::Move(const FInputActionValue& InputActionValue)
