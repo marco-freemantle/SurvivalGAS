@@ -68,6 +68,8 @@ void ASGPlayerController::SetupInputComponent()
 	SGInputComponent->BindAction(PauseGameAction, ETriggerEvent::Started, this, &ASGPlayerController::PauseGame);
 	SGInputComponent->BindAction(SwapWeaponsAction, ETriggerEvent::Started, this, &ASGPlayerController::SwapWeapons);
 	SGInputComponent->BindAction(LockonAction, ETriggerEvent::Started, this, &ASGPlayerController::Lockon);
+	SGInputComponent->BindAction(SwitchLockonTargetLeftAction, ETriggerEvent::Started, this, &ASGPlayerController::SwitchLockonTargetLeft);
+	SGInputComponent->BindAction(SwitchLockonTargetRightAction, ETriggerEvent::Started, this, &ASGPlayerController::SwitchLockonTargetRight);
 }
 
 void ASGPlayerController::Move(const FInputActionValue& InputActionValue)
@@ -159,11 +161,33 @@ void ASGPlayerController::Lockon(const FInputActionValue& InputActionValue)
 	{
 		if(SGCharacter->bIsLockedOnTarget)
 		{
-			SGCharacter->DisenganeLockon();
+			SGCharacter->DisengageLockon();
 		}
 		else
 		{
 			SGCharacter->EngageLockon();
+		}
+	}
+}
+
+void ASGPlayerController::SwitchLockonTargetLeft(const FInputActionValue& InputActionValue)
+{
+	if (ASGCharacter* SGCharacter = Cast<ASGCharacter>(GetCharacter()))
+	{
+		if(SGCharacter->bIsLockedOnTarget)
+		{
+			SGCharacter->SwitchLockonTargetLeft();
+		}
+	}
+}
+
+void ASGPlayerController::SwitchLockonTargetRight(const FInputActionValue& InputActionValue)
+{
+	if (ASGCharacter* SGCharacter = Cast<ASGCharacter>(GetCharacter()))
+	{
+		if(SGCharacter->bIsLockedOnTarget)
+		{
+			SGCharacter->SwitchLockonTargetRight();
 		}
 	}
 }

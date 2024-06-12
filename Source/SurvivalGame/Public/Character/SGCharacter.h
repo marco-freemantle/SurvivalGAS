@@ -19,13 +19,16 @@ public:
 	ASGCharacter();
 	virtual void Tick(float DeltaTime) override;
 
+	void FindLockonTargets();
 	void EngageLockon();
-	void DisenganeLockon();
+	void DisengageLockon();
+	void SwitchLockonTarget(bool bSwitchLeft);
+	void SwitchLockonTargetLeft();
+	void SwitchLockonTargetRight();
 	bool bIsLockedOnTarget = false;
 
 protected:
 	virtual void BeginPlay() override;
-	void AimOffset(float DeltaTime);
 
 private:
 	UPROPERTY()
@@ -48,16 +51,4 @@ private:
 
 	UPROPERTY()
 	ASGPlayerController* VBPlayerController;
-
-	float AO_Yaw;
-	float InterpAO_Yaw;
-	float AO_Pitch;
-	FRotator StartingAimRotation;
-	
-	ETurningInPlace TurningInPlace;
-	void TurnInPlace(float DeltaTime);
-
-public:
-	FORCEINLINE float GetAO_Yaw() const { return AO_Yaw; }
-	FORCEINLINE float GetAO_Pitch() const { return AO_Pitch; }
 };

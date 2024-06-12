@@ -63,6 +63,12 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "Input")
 	TObjectPtr<UInputAction> LockonAction;
+	
+	UPROPERTY(EditAnywhere, Category = "Input")
+	TObjectPtr<UInputAction> SwitchLockonTargetLeftAction;
+
+	UPROPERTY(EditAnywhere, Category = "Input")
+	TObjectPtr<UInputAction> SwitchLockonTargetRightAction;
 
 	void Move(const FInputActionValue& InputActionValue);
 	void LookUp(const FInputActionValue& InputActionValue);
@@ -73,6 +79,8 @@ private:
 	void UnCrouch(const FInputActionValue& InputActionValue);
 	void SwapWeapons(const FInputActionValue& InputActionValue);
 	void Lockon(const FInputActionValue& InputActionValue);
+	void SwitchLockonTargetLeft(const FInputActionValue& InputActionValue);
+	void SwitchLockonTargetRight(const FInputActionValue& InputActionValue);
 	void SetbCanEquipTrue();
 
 	bool bCanEquip = true;
