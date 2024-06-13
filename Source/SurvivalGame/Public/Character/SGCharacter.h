@@ -7,6 +7,7 @@
 #include "SGCharacter.generated.h"
 
 class ULockonComponent;
+class UCombatComponent;
 class ASGPlayerController;
 class USpringArmComponent;
 class UCameraComponent;
@@ -25,9 +26,11 @@ public:
 
 	void SetOverlappingWeapon(AWeapon* Weapon);
 
-	void EquipWeapon();
-	void DropWeapon();
-	void SwapWeapons();
+	void PlaySwapWeaponsMontage() const;
+
+	void InteractButtonPressed();
+	void DropEquippedWeaponButtonPressed();
+	void SwapWeaponsButtonPressed();
 
 protected:
 	virtual void BeginPlay() override;
@@ -48,18 +51,26 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	ULockonComponent* LockonComponent;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	UCombatComponent* CombatComponent;
+
+	UPROPERTY(EditAnywhere, Category=Combat)
+	UAnimMontage* SwapWeaponsMontage;
+
 	UFUNCTION()
 	void OnRep_OverlappingWeapon(AWeapon* LastWeapon);
 
 	UFUNCTION(Server, Reliable)
-	void ServerEquipWeapon();
+	void ServerInteract();
 
 	UFUNCTION(Server, Reliable)
-	void ServerDropWeapon();
+	void ServerDropEquippedWeapon();
 
 	UFUNCTION(Server, Reliable)
 	void ServerSwapWeapons();
 
 public:
 	FORCEINLINE ULockonComponent* GetLockonComponent() const { return LockonComponent; }
+	FORCEINLINE UCombatComponent* GetCombatComponent() const { return CombatComponent; }
+	FORCEINLINE UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 };

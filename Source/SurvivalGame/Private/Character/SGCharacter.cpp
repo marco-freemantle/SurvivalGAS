@@ -5,6 +5,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Net/UnrealNetwork.h"
+#include "SGComponents/CombatComponent.h"
 #include "SGComponents/LockonComponent.h"
 #include "Weapon/Weapon.h"
 
@@ -28,6 +29,9 @@ ASGCharacter::ASGCharacter()
 	LockonComponent = CreateDefaultSubobject<ULockonComponent>(TEXT("LockonComponent"));
 	LockonComponent->SetIsReplicated(true);
 
+	CombatComponent = CreateDefaultSubobject<UCombatComponent>(TEXT("CombatComponent"));
+	CombatComponent->SetIsReplicated(true);
+
 	SpawnCollisionHandlingMethod = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 
 	NetUpdateFrequency = 66.f;
@@ -48,6 +52,10 @@ void ASGCharacter::PostInitializeComponents()
 	if(LockonComponent)
 	{
 		LockonComponent->Character = this;
+	}
+	if(CombatComponent)
+	{
+		CombatComponent->Character = this;
 	}
 }
 
@@ -88,28 +96,47 @@ void ASGCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
 	}
 }
 
-void ASGCharacter::EquipWeapon()
+void ASGCharacter::InteractButtonPressed()
+{
+	ServerInteract();
+}
+
+void ASGCharacter::DropEquippedWeaponButtonPressed()
+{
+	ServerDropEquippedWeapon();
+}
+
+void ASGCharacter::SwapWeaponsButtonPressed()
 {
 }
 
-void ASGCharacter::DropWeapon()
+void ASGCharacter::ServerInteract_Implementation()
 {
+	if(OverlappingWeapon && CombatComponent)
+	{
+		CombatComponent->EquipWeapon(OverlappingWeapon);
+	}
 }
 
-void ASGCharacter::SwapWeapons()
+void ASGCharacter::ServerDropEquippedWeapon_Implementation()
 {
-}
-
-void ASGCharacter::ServerEquipWeapon_Implementation()
-{
-}
-
-void ASGCharacter::ServerDropWeapon_Implementation()
-{
+	if(CombatComponent)
+	{
+		CombatComponent->DropWeapon();
+	}
 }
 
 void ASGCharacter::ServerSwapWeapons_Implementation()
 {
+}
+
+void ASGCharacter::PlaySwapWeaponsMontage() const
+{
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if(AnimInstance && SwapWeaponsMontage)
+	{
+		AnimInstance->Montage_Play(SwapWeaponsMontage);
+	}
 }
 
 

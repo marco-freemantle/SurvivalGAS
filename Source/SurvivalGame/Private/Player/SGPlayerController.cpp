@@ -6,6 +6,7 @@
 #include "Game/SGGameUserSettings.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Input/SGInputComponent.h"
+#include "SGComponents/CombatComponent.h"
 #include "SGComponents/LockonComponent.h"
 
 ASGPlayerController::ASGPlayerController()
@@ -64,6 +65,8 @@ void ASGPlayerController::SetupInputComponent()
 	SGInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ASGPlayerController::Jump);
 	SGInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &ASGPlayerController::Interact);
 	SGInputComponent->BindAction(InteractAction, ETriggerEvent::Completed, this, &ASGPlayerController::SetbCanEquipTrue);
+	SGInputComponent->BindAction(DropWeaponAction, ETriggerEvent::Started, this, &ASGPlayerController::DropWeapon);
+	SGInputComponent->BindAction(DropWeaponAction, ETriggerEvent::Completed, this, &ASGPlayerController::SetbCanDropWeaponTrue);
 	SGInputComponent->BindAction(CrouchAction, ETriggerEvent::Started, this, &ASGPlayerController::Crouch);
 	SGInputComponent->BindAction(CrouchAction, ETriggerEvent::Completed, this, &ASGPlayerController::UnCrouch);
 	SGInputComponent->BindAction(PauseGameAction, ETriggerEvent::Started, this, &ASGPlayerController::PauseGame);
@@ -126,9 +129,22 @@ void ASGPlayerController::Interact(const FInputActionValue& InputActionValue)
 	if(!bCanEquip) return;
 	if (ASGCharacter* SGCharacter = Cast<ASGCharacter>(GetCharacter()))
 	{
-		
+		SGCharacter->InteractButtonPressed();
 	}
 	bCanEquip = false;
+}
+
+void ASGPlayerController::DropWeapon(const FInputActionValue& InputActionValue)
+{
+	if(!bCanDropWeapon) return;
+	if (ASGCharacter* SGCharacter = Cast<ASGCharacter>(GetCharacter()))
+	{
+		if(SGCharacter->GetCombatComponent() && SGCharacter->GetCombatComponent()->EquippedWeapon)
+		{
+			SGCharacter->DropEquippedWeaponButtonPressed();
+		}
+	}
+	bCanDropWeapon = false;
 }
 
 void ASGPlayerController::Crouch(const FInputActionValue& InputActionValue)
@@ -201,4 +217,9 @@ void ASGPlayerController::PauseGame(const FInputActionValue& InputActionValue)
 void ASGPlayerController::SetbCanEquipTrue()
 {
 	bCanEquip = true;
+}
+
+void ASGPlayerController::SetbCanDropWeaponTrue()
+{
+	bCanDropWeapon = true;
 }

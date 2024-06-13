@@ -62,6 +62,9 @@ private:
 	TObjectPtr<UInputAction> PauseGameAction;
 
 	UPROPERTY(EditAnywhere, Category = "Input")
+	TObjectPtr<UInputAction> DropWeaponAction;
+
+	UPROPERTY(EditAnywhere, Category = "Input")
 	TObjectPtr<UInputAction> LockonAction;
 	
 	UPROPERTY(EditAnywhere, Category = "Input")
@@ -81,9 +84,13 @@ private:
 	void Lockon(const FInputActionValue& InputActionValue);
 	void SwitchLockonTargetLeft(const FInputActionValue& InputActionValue);
 	void SwitchLockonTargetRight(const FInputActionValue& InputActionValue);
+	void DropWeapon(const FInputActionValue& InputActionValue);
+	
 	void SetbCanEquipTrue();
+	void SetbCanDropWeaponTrue();
 
 	bool bCanEquip = true;
+	bool bCanDropWeapon = true;
 
 	UPROPERTY()
 	ASGGameMode* SGGameMode;

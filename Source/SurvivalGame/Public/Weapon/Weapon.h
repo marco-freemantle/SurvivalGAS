@@ -92,4 +92,8 @@ private:
 
 	UFUNCTION(NetMulticast, Unreliable)
 	void MulticastPlayHitFloorSound();
+	
+public:
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE USkeletalMeshComponent* GetWeaponMesh() const { return WeaponMesh; }
 };
