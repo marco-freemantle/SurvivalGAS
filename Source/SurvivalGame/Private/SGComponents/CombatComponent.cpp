@@ -49,6 +49,25 @@ void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 	}
 }
 
+void UCombatComponent::DropWeapon()
+{
+	if(Character == nullptr) return;
+	if(EquippedWeapon)
+	{
+		EquippedWeapon->Dropped();
+		EquippedWeapon->GetWeaponMesh()->AddImpulse(Character->GetFollowCamera()->GetForwardVector() * 600.f, FName(), true);
+		CombatState = ECombatState::ECS_Unoccupied;
+		PlayDropWeaponSound(EquippedWeapon);
+	}
+	Controller = Controller == nullptr ? Cast<ASGPlayerController>(Character->Controller) : Controller;
+	EquippedWeapon = nullptr;
+	if(SecondaryWeapon)
+	{
+		EquipWeapon(SecondaryWeapon);
+		SecondaryWeapon = nullptr;
+	}
+}
+
 void UCombatComponent::SwapWeapons()
 {
 	CombatState = ECombatState::ECS_SwappingWeapons;
@@ -138,25 +157,6 @@ void UCombatComponent::OnRep_SecondaryWeapon(const AWeapon* OldWeapon)
 	{
 		SecondaryWeapon->SetWeaponState(EWeaponState::EWS_EquippedSecondary);
 		AttachActorToBack(SecondaryWeapon);
-	}
-}
-
-void UCombatComponent::DropWeapon()
-{
-	if(Character == nullptr) return;
-	if(EquippedWeapon)
-	{
-		EquippedWeapon->Dropped();
-		EquippedWeapon->GetWeaponMesh()->AddImpulse(Character->GetFollowCamera()->GetForwardVector() * 600.f, FName(), true);
-		CombatState = ECombatState::ECS_Unoccupied;
-		PlayDropWeaponSound(EquippedWeapon);
-	}
-	Controller = Controller == nullptr ? Cast<ASGPlayerController>(Character->Controller) : Controller;
-	EquippedWeapon = nullptr;
-	if(SecondaryWeapon)
-	{
-		EquipWeapon(SecondaryWeapon);
-		SecondaryWeapon = nullptr;
 	}
 }
 

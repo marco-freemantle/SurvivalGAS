@@ -7,6 +7,7 @@
 #include "SGTypes/CombatState.h"
 #include "CombatComponent.generated.h"
 
+class AWeapon;
 class ASGPlayerController;
 class ASGCharacter;
 
