@@ -4,6 +4,7 @@
 #include "KismetAnimationLibrary.h"
 #include "Character/SGCharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "SGComponents/LockonComponent.h"
 
 // Animation blueprint BeginPlay equivalent
 void USGAnimInstance::NativeInitializeAnimation()
@@ -31,6 +32,10 @@ void USGAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	bIsInAir = SGCharacter->GetCharacterMovement()->IsFalling();
 	bIsAccelerating = SGCharacter->GetCharacterMovement()->GetCurrentAcceleration().Size() > 0.f;
 	bIsCrouched = SGCharacter->bIsCrouched;
-	bIsLockedOnTarget = SGCharacter->bIsLockedOnTarget;
+	if(SGCharacter->GetLockonComponent())
+	{
+		bIsLockedOnTarget = SGCharacter->GetLockonComponent()->bIsLockedOnTarget;
+
+	}
 	LockedonDirection = UKismetAnimationLibrary::CalculateDirection(SGCharacter->GetVelocity(), SGCharacter->GetActorRotation());
 }

@@ -6,6 +6,7 @@
 #include "Game/SGGameUserSettings.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Input/SGInputComponent.h"
+#include "SGComponents/LockonComponent.h"
 
 ASGPlayerController::ASGPlayerController()
 {
@@ -159,35 +160,35 @@ void ASGPlayerController::Lockon(const FInputActionValue& InputActionValue)
 {
 	if (ASGCharacter* SGCharacter = Cast<ASGCharacter>(GetCharacter()))
 	{
-		if(SGCharacter->bIsLockedOnTarget)
+		if(SGCharacter->GetLockonComponent() && SGCharacter->GetLockonComponent()->bIsLockedOnTarget)
 		{
-			SGCharacter->DisengageLockon();
+			SGCharacter->GetLockonComponent()->DisengageLockon();
 		}
 		else
 		{
-			SGCharacter->EngageLockon();
+			SGCharacter->GetLockonComponent()->EngageLockon();
 		}
 	}
 }
 
 void ASGPlayerController::SwitchLockonTargetLeft(const FInputActionValue& InputActionValue)
 {
-	if (ASGCharacter* SGCharacter = Cast<ASGCharacter>(GetCharacter()))
+	if (const ASGCharacter* SGCharacter = Cast<ASGCharacter>(GetCharacter()))
 	{
-		if(SGCharacter->bIsLockedOnTarget)
+		if(SGCharacter->GetLockonComponent() && SGCharacter->GetLockonComponent()->bIsLockedOnTarget)
 		{
-			SGCharacter->SwitchLockonTargetLeft();
+			SGCharacter->GetLockonComponent()->SwitchLockonTargetLeft();
 		}
 	}
 }
 
 void ASGPlayerController::SwitchLockonTargetRight(const FInputActionValue& InputActionValue)
 {
-	if (ASGCharacter* SGCharacter = Cast<ASGCharacter>(GetCharacter()))
+	if (const ASGCharacter* SGCharacter = Cast<ASGCharacter>(GetCharacter()))
 	{
-		if(SGCharacter->bIsLockedOnTarget)
+		if(SGCharacter->GetLockonComponent() && SGCharacter->GetLockonComponent()->bIsLockedOnTarget)
 		{
-			SGCharacter->SwitchLockonTargetRight();
+			SGCharacter->GetLockonComponent()->SwitchLockonTargetRight();
 		}
 	}
 }

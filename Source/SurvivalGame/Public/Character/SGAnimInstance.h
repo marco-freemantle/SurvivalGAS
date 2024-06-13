@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
-#include "SGTypes/TurningInPlace.h"
 #include "SGAnimInstance.generated.h"
 
 /**
