@@ -31,6 +31,7 @@ class SURVIVALGAME_API AWeapon : public AActor
 public:	
 	AWeapon();
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	virtual void Tick(float DeltaSeconds) override;
 	virtual void OnRep_Owner() override;
 
 	UPROPERTY(BlueprintReadOnly)
@@ -52,6 +53,17 @@ public:
 
 	UPROPERTY(EditAnywhere)
 	USoundBase* HitFloorSound;
+
+	UFUNCTION(BlueprintCallable)
+	void StartTraceAttack();
+
+	UFUNCTION(BlueprintCallable)
+	void EndTraceAttack();
+
+	bool bIsTraceActive = false;
+
+	UPROPERTY()
+	TArray<AActor*> HitActors;
 
 protected:
 	virtual void BeginPlay() override;
@@ -96,4 +108,5 @@ private:
 public:
 	UFUNCTION(BlueprintCallable)
 	FORCEINLINE USkeletalMeshComponent* GetWeaponMesh() const { return WeaponMesh; }
+	FORCEINLINE EWeaponType GetWeaponType() const { return WeaponType; }
 };

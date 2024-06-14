@@ -10,7 +10,7 @@
 
 AWeapon::AWeapon()
 {
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
 	bReplicates = true;
 
 	WeaponMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponMesh"));
@@ -55,6 +55,53 @@ void AWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeP
 	DOREPLIFETIME(AWeapon, WeaponState);
 }
 
+void AWeapon::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+	
+	if(HasAuthority() && bIsTraceActive)
+	{
+		FVector StartSocket = WeaponMesh->GetSocketLocation(FName("Start"));
+		FVector EndSocket = WeaponMesh->GetSocketLocation(FName("End"));
+
+		TArray<FHitResult> OutResults;
+		
+		bool bHit = GetWorld()->SweepMultiByChannel(
+		   OutResults,
+		   StartSocket,
+		   EndSocket,
+		   FQuat::Identity,
+		   ECC_Pawn,
+		   FCollisionShape::MakeCapsule(10.f, 75.f)
+	   );
+
+		FVector Midpoint = (StartSocket + EndSocket) / 2.0f;
+		FVector CapsuleAxis = (EndSocket - StartSocket).GetSafeNormal();
+		FRotator CapsuleRotation = FRotationMatrix::MakeFromZ(CapsuleAxis).Rotator();
+
+		DrawDebugCapsule(
+			GetWorld(),
+			Midpoint,
+			75.f,
+			10.f,
+			CapsuleRotation.Quaternion(),
+			FColor::Red,
+			false, // Persistent lines (set to true if you want the lines to persist)
+			5.0f,  // Duration the debug lines should be visible (set to 0 for infinite)
+			0,     // Depth priority (default is 0)
+			1.0f   // Line thickness
+		);
+
+		if (bHit)
+		{
+			for (const FHitResult& Hit : OutResults)
+			{
+				HitActors.AddUnique(Hit.GetActor());
+			}
+		}
+	}
+}
+
 void AWeapon::OnWeaponStateSet()
 {
 	switch (WeaponState)
@@ -73,6 +120,7 @@ void AWeapon::OnWeaponStateSet()
 
 void AWeapon::OnEquipped()
 {
+	SGOwnerCharacter = SGOwnerCharacter == nullptr ? Cast<ASGCharacter>(Owner) : SGOwnerCharacter;
 	ShowPickupWidget(false);
 	AreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	WeaponMesh->SetSimulatePhysics(false);
@@ -175,6 +223,21 @@ void AWeapon::Dropped()
 	SetOwner(nullptr);
 	SGOwnerCharacter = nullptr;
 	SGOwnerController = nullptr;
+}
+
+void AWeapon::StartTraceAttack()
+{
+	HitActors.Empty();
+	bIsTraceActive = true;
+}
+
+void AWeapon::EndTraceAttack()
+{
+	for(auto actor : HitActors)
+	{
+		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 5.f, FColor::Red, FString::Printf(TEXT("%s"), *actor->GetName()));
+	}
+	bIsTraceActive = false;
 }
 
 void AWeapon::MulticastPlayHitFloorSound_Implementation()

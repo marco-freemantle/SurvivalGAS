@@ -40,6 +40,7 @@ void USGAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	if(SGCharacter->GetCombatComponent())
 	{
 		bWeaponEquipped = SGCharacter->GetCombatComponent()->EquippedWeapon ? true : false;
+		bIsBlocking = SGCharacter->GetCombatComponent()->bIsBlocking;
 	}
 	LockedonDirection = UKismetAnimationLibrary::CalculateDirection(SGCharacter->GetVelocity(), SGCharacter->GetActorRotation());
 }

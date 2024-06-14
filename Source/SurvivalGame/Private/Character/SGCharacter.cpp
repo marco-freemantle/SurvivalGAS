@@ -119,6 +119,16 @@ void ASGCharacter::AttackButtonPressed()
 	ServerAttack();
 }
 
+void ASGCharacter::BlockButtonPressed()
+{
+	ServerBlock();
+}
+
+void ASGCharacter::BlockButtonReleased()
+{
+	ServerUnblock();
+}
+
 void ASGCharacter::ServerInteract_Implementation()
 {
 	if(OverlappingWeapon && CombatComponent)
@@ -144,6 +154,22 @@ void ASGCharacter::ServerAttack_Implementation()
 	if(CombatComponent)
 	{
 		CombatComponent->Attack();
+	}
+}
+
+void ASGCharacter::ServerBlock_Implementation()
+{
+	if(CombatComponent)
+	{
+		CombatComponent->Block();
+	}
+}
+
+void ASGCharacter::ServerUnblock_Implementation()
+{
+	if(CombatComponent)
+	{
+		CombatComponent->Unblock();
 	}
 }
 

@@ -30,6 +30,8 @@ public:
 	void PlayDropWeaponSound(const AWeapon* WeaponToDrop) const;
 	void DropWeapon();
 	void Attack();
+	void Block();
+	void Unblock();
 
 	void AttachActorToRightHand(AActor* ActorToAttach) const;
 	void AttachActorToLeftHand(AActor* ActorToAttach) const;
@@ -47,6 +49,12 @@ public:
 	UPROPERTY(ReplicatedUsing = OnRep_SecondaryWeapon, BlueprintReadOnly)
 	AWeapon* SecondaryWeapon;
 
+	UPROPERTY(ReplicatedUsing = OnRep_Shield, BlueprintReadOnly)
+	AWeapon* Shield;
+
+	UPROPERTY(Replicated)
+	bool bIsBlocking = false;
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -56,8 +64,12 @@ protected:
 	UFUNCTION()
 	void OnRep_SecondaryWeapon(const AWeapon* OldWeapon);
 
+	UFUNCTION()
+	void OnRep_Shield(const AWeapon* OldShield);
+
 	void EquipPrimaryWeapon(AWeapon* WeaponToEquip);
 	void EquipSecondaryWeapon(AWeapon* WeaponToEquip);
+	void EquipShield(AWeapon* WeaponToEquip);
 
 private:
 	UPROPERTY()
@@ -71,12 +83,8 @@ private:
 
 	UFUNCTION()
 	void OnRep_CombatState();
-
-	UPROPERTY(ReplicatedUsing = OnRep_AttackCombo)
+	
 	int32 AttackCombo = 0;
-
-	UFUNCTION()
-	void OnRep_AttackCombo();
 
 	UFUNCTION(BlueprintCallable)
 	void ResetCombo();
@@ -92,6 +100,12 @@ private:
 
 	UPROPERTY(EditAnywhere, Category=Combat)
 	UAnimMontage* AttackCMontage;
+
+	UPROPERTY(EditAnywhere)
+	float BaseWalkSpeed;
+
+	UPROPERTY(EditAnywhere)
+	float BlockWalkSpeed;
 	
 public:
 	bool ShouldSwapWeapons() const;

@@ -4,6 +4,7 @@
 #include "Camera/CameraComponent.h"
 #include "Character/SGCharacter.h"
 #include "Engine/SkeletalMeshSocket.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 #include "Player/SGPlayerController.h"
@@ -31,8 +32,9 @@ void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 
 	DOREPLIFETIME(UCombatComponent, EquippedWeapon);
 	DOREPLIFETIME(UCombatComponent, SecondaryWeapon);
+	DOREPLIFETIME(UCombatComponent, Shield);
 	DOREPLIFETIME(UCombatComponent, CombatState);
-	DOREPLIFETIME(UCombatComponent, AttackCombo);
+	DOREPLIFETIME(UCombatComponent, bIsBlocking);
 }
 
 // Called on the Server from ASGCharacter
@@ -40,7 +42,11 @@ void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 {
 	if(Character == nullptr || WeaponToEquip == nullptr) return;
 
-	if(EquippedWeapon != nullptr && SecondaryWeapon == nullptr)
+	if(WeaponToEquip->GetWeaponType() == EWeaponType::EWT_Shield)
+	{
+		EquipShield(WeaponToEquip);
+	}
+	else if(EquippedWeapon != nullptr && SecondaryWeapon == nullptr)
 	{
 		EquipSecondaryWeapon(WeaponToEquip);
 	}
@@ -66,6 +72,7 @@ void UCombatComponent::DropWeapon()
 
 void UCombatComponent::Attack()
 {
+	if(!EquippedWeapon) return;
 	switch (AttackCombo)
 	{
 	case 0:
@@ -97,9 +104,23 @@ void UCombatComponent::Attack()
 	}
 }
 
-void UCombatComponent::OnRep_AttackCombo()
+void UCombatComponent::Block()
 {
-	
+	if(!Shield) return;
+	bIsBlocking = true;
+	if(Character && Character->GetMovementComponent())
+	{
+		Character->GetCharacterMovement()->MaxWalkSpeed = BlockWalkSpeed;
+	}
+}
+
+void UCombatComponent::Unblock()
+{
+	bIsBlocking = false;
+	if(Character && Character->GetMovementComponent())
+	{
+		Character->GetCharacterMovement()->MaxWalkSpeed = BaseWalkSpeed;
+	}
 }
 
 void UCombatComponent::SwapWeapons()
@@ -168,6 +189,16 @@ void UCombatComponent::EquipSecondaryWeapon(AWeapon* WeaponToEquip)
 	PlayEquipWeaponSound(SecondaryWeapon);
 }
 
+void UCombatComponent::EquipShield(AWeapon* WeaponToEquip)
+{
+	CombatState = ECombatState::ECS_Unoccupied;
+	Shield = WeaponToEquip;
+	Shield->SetWeaponState(EWeaponState::EWS_Equipped);
+	AttachActorToLeftHand(Shield);
+	PlayEquipWeaponSound(Shield);
+	Shield->SetOwner(Character);
+}
+
 void UCombatComponent::OnRep_EquippedWeapon(const AWeapon* OldWeapon)
 {
 	if(EquippedWeapon && Character)
@@ -204,6 +235,10 @@ void UCombatComponent::OnRep_SecondaryWeapon(const AWeapon* OldWeapon)
 	}
 }
 
+void UCombatComponent::OnRep_Shield(const AWeapon* OldShield)
+{
+}
+
 void UCombatComponent::AttachActorToRightHand(AActor* ActorToAttach) const
 {
 	if(const USkeletalMeshSocket* HandSocket = Character->GetMesh()->GetSocketByName(FName("RightHandSocket")))
@@ -216,7 +251,7 @@ void UCombatComponent::AttachActorToLeftHand(AActor* ActorToAttach) const
 {
 	if(const USkeletalMeshSocket* HandSocket = Character->GetMesh()->GetSocketByName(FName("LeftHandSocket")))
 	{
-		HandSocket->AttachActor(EquippedWeapon, Character->GetMesh());
+		HandSocket->AttachActor(ActorToAttach, Character->GetMesh());
 	}
 }
 

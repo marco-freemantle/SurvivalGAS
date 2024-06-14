@@ -73,6 +73,8 @@ void ASGPlayerController::SetupInputComponent()
 	SGInputComponent->BindAction(SwapWeaponsAction, ETriggerEvent::Started, this, &ASGPlayerController::SwapWeapons);
 	SGInputComponent->BindAction(LockonAction, ETriggerEvent::Started, this, &ASGPlayerController::Lockon);
 	SGInputComponent->BindAction(AttackAction, ETriggerEvent::Triggered, this, &ASGPlayerController::Attack);
+	SGInputComponent->BindAction(BlockAction, ETriggerEvent::Started, this, &ASGPlayerController::Block);
+	SGInputComponent->BindAction(BlockAction, ETriggerEvent::Completed, this, &ASGPlayerController::Unblock);
 	SGInputComponent->BindAction(SwitchLockonTargetLeftAction, ETriggerEvent::Started, this, &ASGPlayerController::SwitchLockonTargetLeft);
 	SGInputComponent->BindAction(SwitchLockonTargetRightAction, ETriggerEvent::Started, this, &ASGPlayerController::SwitchLockonTargetRight);
 }
@@ -153,6 +155,22 @@ void ASGPlayerController::Attack(const FInputActionValue& InputActionValue)
 	if (ASGCharacter* SGCharacter = Cast<ASGCharacter>(GetCharacter()))
 	{
 		SGCharacter->AttackButtonPressed();
+	}
+}
+
+void ASGPlayerController::Block(const FInputActionValue& InputActionValue)
+{
+	if (ASGCharacter* SGCharacter = Cast<ASGCharacter>(GetCharacter()))
+	{
+		SGCharacter->BlockButtonPressed();
+	}
+}
+
+void ASGPlayerController::Unblock(const FInputActionValue& InputActionValue)
+{
+	if (ASGCharacter* SGCharacter = Cast<ASGCharacter>(GetCharacter()))
+	{
+		SGCharacter->BlockButtonReleased();
 	}
 }
 

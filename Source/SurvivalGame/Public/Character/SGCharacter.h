@@ -35,6 +35,8 @@ public:
 	void DropEquippedWeaponButtonPressed();
 	void SwapWeaponsButtonPressed();
 	void AttackButtonPressed();
+	void BlockButtonPressed();
+	void BlockButtonReleased();
 
 protected:
 	virtual void BeginPlay() override;
@@ -75,6 +77,12 @@ private:
 
 	UFUNCTION(Server, Reliable)
 	void ServerAttack();
+
+	UFUNCTION(Server, Reliable)
+	void ServerBlock();
+
+	UFUNCTION(Server, Reliable)
+	void ServerUnblock();
 
 public:
 	FORCEINLINE ULockonComponent* GetLockonComponent() const { return LockonComponent; }
