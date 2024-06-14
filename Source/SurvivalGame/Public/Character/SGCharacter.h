@@ -28,9 +28,13 @@ public:
 
 	void PlaySwapWeaponsMontage() const;
 
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastPlayAttackMontage(UAnimMontage* Montage);
+
 	void InteractButtonPressed();
 	void DropEquippedWeaponButtonPressed();
 	void SwapWeaponsButtonPressed();
+	void AttackButtonPressed();
 
 protected:
 	virtual void BeginPlay() override;
@@ -68,6 +72,9 @@ private:
 
 	UFUNCTION(Server, Reliable)
 	void ServerSwapWeapons();
+
+	UFUNCTION(Server, Reliable)
+	void ServerAttack();
 
 public:
 	FORCEINLINE ULockonComponent* GetLockonComponent() const { return LockonComponent; }

@@ -4,6 +4,7 @@
 #include "KismetAnimationLibrary.h"
 #include "Character/SGCharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "SGComponents/CombatComponent.h"
 #include "SGComponents/LockonComponent.h"
 
 // Animation blueprint BeginPlay equivalent
@@ -35,7 +36,10 @@ void USGAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	if(SGCharacter->GetLockonComponent())
 	{
 		bIsLockedOnTarget = SGCharacter->GetLockonComponent()->bIsLockedOnTarget;
-
+	}
+	if(SGCharacter->GetCombatComponent())
+	{
+		bWeaponEquipped = SGCharacter->GetCombatComponent()->EquippedWeapon ? true : false;
 	}
 	LockedonDirection = UKismetAnimationLibrary::CalculateDirection(SGCharacter->GetVelocity(), SGCharacter->GetActorRotation());
 }

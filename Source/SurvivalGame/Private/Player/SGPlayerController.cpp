@@ -72,6 +72,7 @@ void ASGPlayerController::SetupInputComponent()
 	SGInputComponent->BindAction(PauseGameAction, ETriggerEvent::Started, this, &ASGPlayerController::PauseGame);
 	SGInputComponent->BindAction(SwapWeaponsAction, ETriggerEvent::Started, this, &ASGPlayerController::SwapWeapons);
 	SGInputComponent->BindAction(LockonAction, ETriggerEvent::Started, this, &ASGPlayerController::Lockon);
+	SGInputComponent->BindAction(AttackAction, ETriggerEvent::Triggered, this, &ASGPlayerController::Attack);
 	SGInputComponent->BindAction(SwitchLockonTargetLeftAction, ETriggerEvent::Started, this, &ASGPlayerController::SwitchLockonTargetLeft);
 	SGInputComponent->BindAction(SwitchLockonTargetRightAction, ETriggerEvent::Started, this, &ASGPlayerController::SwitchLockonTargetRight);
 }
@@ -145,6 +146,14 @@ void ASGPlayerController::DropWeapon(const FInputActionValue& InputActionValue)
 		}
 	}
 	bCanDropWeapon = false;
+}
+
+void ASGPlayerController::Attack(const FInputActionValue& InputActionValue)
+{
+	if (ASGCharacter* SGCharacter = Cast<ASGCharacter>(GetCharacter()))
+	{
+		SGCharacter->AttackButtonPressed();
+	}
 }
 
 void ASGPlayerController::Crouch(const FInputActionValue& InputActionValue)

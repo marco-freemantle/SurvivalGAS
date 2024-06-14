@@ -32,6 +32,7 @@ void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	DOREPLIFETIME(UCombatComponent, EquippedWeapon);
 	DOREPLIFETIME(UCombatComponent, SecondaryWeapon);
 	DOREPLIFETIME(UCombatComponent, CombatState);
+	DOREPLIFETIME(UCombatComponent, AttackCombo);
 }
 
 // Called on the Server from ASGCharacter
@@ -55,17 +56,50 @@ void UCombatComponent::DropWeapon()
 	if(EquippedWeapon)
 	{
 		EquippedWeapon->Dropped();
-		EquippedWeapon->GetWeaponMesh()->AddImpulse(Character->GetFollowCamera()->GetForwardVector() * 600.f, FName(), true);
+		EquippedWeapon->GetWeaponMesh()->AddImpulse(Character->GetFollowCamera()->GetForwardVector() * 200.f, FName(), true);
 		CombatState = ECombatState::ECS_Unoccupied;
 		PlayDropWeaponSound(EquippedWeapon);
 	}
 	Controller = Controller == nullptr ? Cast<ASGPlayerController>(Character->Controller) : Controller;
 	EquippedWeapon = nullptr;
-	if(SecondaryWeapon)
+}
+
+void UCombatComponent::Attack()
+{
+	switch (AttackCombo)
 	{
-		EquipWeapon(SecondaryWeapon);
-		SecondaryWeapon = nullptr;
+	case 0:
+		if(CombatState == ECombatState::ECS_Unoccupied && Character)
+		{
+			AttackCombo = 1;
+			CombatState = ECombatState::ECS_Attacking;
+			Character->MulticastPlayAttackMontage(AttackAMontage);
+		}
+		break;
+	case 1:
+		if(CombatState == ECombatState::ECS_Unoccupied && Character)
+		{
+			AttackCombo = 2;
+			CombatState = ECombatState::ECS_Attacking;
+
+			Character->MulticastPlayAttackMontage(AttackBMontage);
+		}
+		break;
+	case 2:
+		if(CombatState == ECombatState::ECS_Unoccupied && Character)
+		{
+			AttackCombo = 0;
+			CombatState = ECombatState::ECS_Attacking;
+
+			Character->MulticastPlayAttackMontage(AttackCMontage);
+		}
+		break;
 	}
+}
+
+void UCombatComponent::OnRep_AttackCombo()
+{
+	
 }
 
 void UCombatComponent::SwapWeapons()
@@ -82,6 +116,16 @@ void UCombatComponent::SwapWeapons()
 		EquippedWeapon = SecondaryWeapon;
 		SecondaryWeapon = TempWeapon;
 	}, 0.5f, false);
+}
+
+void UCombatComponent::ResetCombo()
+{
+	AttackCombo = 0;
+}
+
+void UCombatComponent::AttackFinished()
+{
+	CombatState = ECombatState::ECS_Unoccupied;
 }
 
 void UCombatComponent::PlayEquipWeaponSound(const AWeapon* WeaponToEquip) const
@@ -211,7 +255,6 @@ void UCombatComponent::OnRep_CombatState()
 	case ECombatState::ECS_Attacking:
 		if(Character && !Character->IsLocallyControlled())
 		{
-			
 		}
 		break;
 	case ECombatState::ECS_SwappingWeapons:

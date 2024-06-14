@@ -110,6 +110,15 @@ void ASGCharacter::SwapWeaponsButtonPressed()
 {
 }
 
+void ASGCharacter::AttackButtonPressed()
+{
+	if(CombatComponent->CombatState != ECombatState::ECS_Attacking && !HasAuthority())
+	{
+		CombatComponent->Attack();
+	}
+	ServerAttack();
+}
+
 void ASGCharacter::ServerInteract_Implementation()
 {
 	if(OverlappingWeapon && CombatComponent)
@@ -130,12 +139,29 @@ void ASGCharacter::ServerSwapWeapons_Implementation()
 {
 }
 
+void ASGCharacter::ServerAttack_Implementation()
+{
+	if(CombatComponent)
+	{
+		CombatComponent->Attack();
+	}
+}
+
 void ASGCharacter::PlaySwapWeaponsMontage() const
 {
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 	if(AnimInstance && SwapWeaponsMontage)
 	{
 		AnimInstance->Montage_Play(SwapWeaponsMontage);
+	}
+}
+
+void ASGCharacter::MulticastPlayAttackMontage_Implementation(UAnimMontage* Montage)
+{
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if(AnimInstance && Montage)
+	{
+		AnimInstance->Montage_Play(Montage);
 	}
 }
 

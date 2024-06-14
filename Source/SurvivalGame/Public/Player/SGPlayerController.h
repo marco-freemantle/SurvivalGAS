@@ -66,6 +66,9 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "Input")
 	TObjectPtr<UInputAction> LockonAction;
+
+	UPROPERTY(EditAnywhere, Category = "Input")
+	TObjectPtr<UInputAction> AttackAction;
 	
 	UPROPERTY(EditAnywhere, Category = "Input")
 	TObjectPtr<UInputAction> SwitchLockonTargetLeftAction;
@@ -85,6 +88,7 @@ private:
 	void SwitchLockonTargetLeft(const FInputActionValue& InputActionValue);
 	void SwitchLockonTargetRight(const FInputActionValue& InputActionValue);
 	void DropWeapon(const FInputActionValue& InputActionValue);
+	void Attack(const FInputActionValue& InputActionValue);
 	
 	void SetbCanEquipTrue();
 	void SetbCanDropWeaponTrue();

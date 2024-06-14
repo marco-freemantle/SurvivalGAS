@@ -29,6 +29,7 @@ public:
 	void PlayEquipWeaponSound(const AWeapon* WeaponToEquip) const;
 	void PlayDropWeaponSound(const AWeapon* WeaponToDrop) const;
 	void DropWeapon();
+	void Attack();
 
 	void AttachActorToRightHand(AActor* ActorToAttach) const;
 	void AttachActorToLeftHand(AActor* ActorToAttach) const;
@@ -70,6 +71,27 @@ private:
 
 	UFUNCTION()
 	void OnRep_CombatState();
+
+	UPROPERTY(ReplicatedUsing = OnRep_AttackCombo)
+	int32 AttackCombo = 0;
+
+	UFUNCTION()
+	void OnRep_AttackCombo();
+
+	UFUNCTION(BlueprintCallable)
+	void ResetCombo();
+
+	UFUNCTION(BlueprintCallable)
+	void AttackFinished();
+
+	UPROPERTY(EditAnywhere, Category=Combat)
+	UAnimMontage* AttackAMontage;
+
+	UPROPERTY(EditAnywhere, Category=Combat)
+	UAnimMontage* AttackBMontage;
+
+	UPROPERTY(EditAnywhere, Category=Combat)
+	UAnimMontage* AttackCMontage;
 	
 public:
 	bool ShouldSwapWeapons() const;
