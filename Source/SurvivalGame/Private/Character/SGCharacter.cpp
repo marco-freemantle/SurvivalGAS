@@ -121,11 +121,19 @@ void ASGCharacter::AttackButtonPressed()
 
 void ASGCharacter::BlockButtonPressed()
 {
+	if(!HasAuthority())
+	{
+		CombatComponent->Block();
+	}
 	ServerBlock();
 }
 
 void ASGCharacter::BlockButtonReleased()
 {
+	if(!HasAuthority())
+	{
+		CombatComponent->Unblock();
+	}
 	ServerUnblock();
 }
 

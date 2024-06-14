@@ -51,6 +51,7 @@ void ULockonComponent::FindLockonTargets()
 	{
 		if (Hit.GetActor()->Implements<ULockonInterface>())
 		{
+			if(Hit.GetActor() == GetOwner()) return;
 			LockonTargets.AddUnique(Hit.GetActor());
 		}
 	}

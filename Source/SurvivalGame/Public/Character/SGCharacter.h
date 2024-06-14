@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "Interfaces/LockonInterface.h"
 #include "SGCharacter.generated.h"
 
 class ULockonComponent;
@@ -14,7 +15,7 @@ class UCameraComponent;
 class AWeapon;
 
 UCLASS()
-class SURVIVALGAME_API ASGCharacter : public ACharacter
+class SURVIVALGAME_API ASGCharacter : public ACharacter, public ILockonInterface
 {
 	GENERATED_BODY()
 
