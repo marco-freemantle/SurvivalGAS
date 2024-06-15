@@ -33,7 +33,6 @@ public:
 	void MulticastPlayAttackMontage(UAnimMontage* Montage);
 
 	void InteractButtonPressed();
-	void DropEquippedWeaponButtonPressed();
 	void SwapWeaponsButtonPressed();
 	void AttackButtonPressed();
 	void BlockButtonPressed();
@@ -41,6 +40,13 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+
+	// HEALTH
+	UPROPERTY(Replicated)
+	float Health;
+
+	UFUNCTION()
+	void ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatorController, AActor* DamageCauser);
 
 private:
 	UPROPERTY(VisibleAnywhere, Category = Camera)
@@ -69,9 +75,6 @@ private:
 
 	UFUNCTION(Server, Reliable)
 	void ServerInteract();
-
-	UFUNCTION(Server, Reliable)
-	void ServerDropEquippedWeapon();
 
 	UFUNCTION(Server, Reliable)
 	void ServerSwapWeapons();

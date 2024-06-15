@@ -2,7 +2,7 @@
 
 #include "Weapon/Weapon.h"
 #include "Character/SGCharacter.h"
-#include "Player/SGPlayerController.h"
+#include "Components/BoxComponent.h"
 #include "Components/SphereComponent.h"
 #include "Components/WidgetComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -10,7 +10,7 @@
 
 AWeapon::AWeapon()
 {
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 	bReplicates = true;
 
 	WeaponMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponMesh"));
@@ -23,6 +23,11 @@ AWeapon::AWeapon()
 	AreaSphere->SetupAttachment(RootComponent);
 	AreaSphere->SetCollisionResponseToAllChannels(ECR_Ignore);
 	AreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	BoxCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxCollision"));
+	BoxCollision->SetupAttachment(RootComponent);
+	BoxCollision->SetCollisionResponseToAllChannels(ECR_Ignore);
+	BoxCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	PickupWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("PickupWidget"));
 	PickupWidget->SetupAttachment(RootComponent);
@@ -38,7 +43,10 @@ void AWeapon::BeginPlay()
 		AreaSphere->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 		AreaSphere->OnComponentBeginOverlap.AddDynamic(this, &AWeapon::OnSphereOverlap);
 		AreaSphere->OnComponentEndOverlap.AddDynamic(this, &AWeapon::OnSphereEndOverlap);
-		WeaponMesh->OnComponentHit.AddDynamic(this, &AWeapon::OnHit);
+		BoxCollision->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		BoxCollision->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+		BoxCollision->OnComponentBeginOverlap.AddDynamic(this, &AWeapon::OnBoxOverlap);
+		BoxCollision->OnComponentEndOverlap.AddDynamic(this, &AWeapon::OnBoxEndOverlap);
 		SetReplicateMovement(true);
 	}
 	
@@ -55,53 +63,6 @@ void AWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeP
 	DOREPLIFETIME(AWeapon, WeaponState);
 }
 
-void AWeapon::Tick(float DeltaSeconds)
-{
-	Super::Tick(DeltaSeconds);
-	
-	if(HasAuthority() && bIsTraceActive)
-	{
-		FVector StartSocket = WeaponMesh->GetSocketLocation(FName("Start"));
-		FVector EndSocket = WeaponMesh->GetSocketLocation(FName("End"));
-
-		TArray<FHitResult> OutResults;
-		
-		bool bHit = GetWorld()->SweepMultiByChannel(
-		   OutResults,
-		   StartSocket,
-		   EndSocket,
-		   FQuat::Identity,
-		   ECC_Pawn,
-		   FCollisionShape::MakeCapsule(10.f, 75.f)
-	   );
-
-		FVector Midpoint = (StartSocket + EndSocket) / 2.0f;
-		FVector CapsuleAxis = (EndSocket - StartSocket).GetSafeNormal();
-		FRotator CapsuleRotation = FRotationMatrix::MakeFromZ(CapsuleAxis).Rotator();
-
-		DrawDebugCapsule(
-			GetWorld(),
-			Midpoint,
-			75.f,
-			10.f,
-			CapsuleRotation.Quaternion(),
-			FColor::Red,
-			false, // Persistent lines (set to true if you want the lines to persist)
-			5.0f,  // Duration the debug lines should be visible (set to 0 for infinite)
-			0,     // Depth priority (default is 0)
-			1.0f   // Line thickness
-		);
-
-		if (bHit)
-		{
-			for (const FHitResult& Hit : OutResults)
-			{
-				HitActors.AddUnique(Hit.GetActor());
-			}
-		}
-	}
-}
-
 void AWeapon::OnWeaponStateSet()
 {
 	switch (WeaponState)
@@ -111,9 +72,6 @@ void AWeapon::OnWeaponStateSet()
 		break;
 	case EWeaponState::EWS_EquippedSecondary:
 		OnEquippedSecondary();
-		break;
-	case EWeaponState::EWS_Dropped:
-		OnDropped();
 		break;
 	}
 }
@@ -126,18 +84,6 @@ void AWeapon::OnEquipped()
 	WeaponMesh->SetSimulatePhysics(false);
 	WeaponMesh->SetEnableGravity(false);
 	WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	bCanPlayHitFloorSound = true;
-}
-
-void AWeapon::OnDropped()
-{
-	if(HasAuthority())
-	{
-		AreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-	}
-	WeaponMesh->SetSimulatePhysics(true);
-	WeaponMesh->SetEnableGravity(true);
-	WeaponMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 }
 
 void AWeapon::OnEquippedSecondary()
@@ -181,14 +127,20 @@ void AWeapon::OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActo
 	}
 }
 
-void AWeapon::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
-	FVector NormalImpulse, const FHitResult& Hit)
+void AWeapon::OnBoxOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp,
+	int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if(bCanPlayHitFloorSound)
+	// Trace active and not overlapping self
+	if(bIsTraceActive && OtherActor && GetOwner() && OtherActor != GetOwner())
 	{
-		MulticastPlayHitFloorSound();
+		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 5.f, FColor::Red, FString::Printf(TEXT("%s"), *OtherActor->GetName()));
+		UGameplayStatics::ApplyDamage(OtherActor, 25.f, GetOwner()->GetInstigatorController(), this, UDamageType::StaticClass());
 	}
-	bCanPlayHitFloorSound = false;
+}
+
+void AWeapon::OnBoxEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
 }
 
 void AWeapon::SetWeaponState(EWeaponState State)
@@ -210,41 +162,13 @@ void AWeapon::ShowPickupWidget(bool bShowWidget) const
 	}
 }
 
-
-void AWeapon::Dropped()
-{
-	SetWeaponState(EWeaponState::EWS_Dropped);
-	FDetachmentTransformRules DetachRules(EDetachmentRule::KeepWorld, true);
-	WeaponMesh->DetachFromComponent(DetachRules);
-	if(SGOwnerCharacter && SGOwnerCharacter->IsLocallyControlled())
-	{
-		WeaponMesh->SetVisibility(true);
-	}
-	SetOwner(nullptr);
-	SGOwnerCharacter = nullptr;
-	SGOwnerController = nullptr;
-}
-
 void AWeapon::StartTraceAttack()
 {
-	HitActors.Empty();
 	bIsTraceActive = true;
 }
 
 void AWeapon::EndTraceAttack()
 {
-	for(auto actor : HitActors)
-	{
-		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 5.f, FColor::Red, FString::Printf(TEXT("%s"), *actor->GetName()));
-	}
 	bIsTraceActive = false;
-}
-
-void AWeapon::MulticastPlayHitFloorSound_Implementation()
-{
-	if(HitFloorSound)
-	{
-		UGameplayStatics::PlaySoundAtLocation(this, HitFloorSound, GetActorLocation());
-	}
 }
 

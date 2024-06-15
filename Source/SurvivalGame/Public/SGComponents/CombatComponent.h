@@ -27,8 +27,6 @@ public:
 	void EquipWeapon(AWeapon* WeaponToEquip);
 	void SwapWeapons();
 	void PlayEquipWeaponSound(const AWeapon* WeaponToEquip) const;
-	void PlayDropWeaponSound(const AWeapon* WeaponToDrop) const;
-	void DropWeapon();
 	void Attack();
 	void Block();
 	void Unblock();

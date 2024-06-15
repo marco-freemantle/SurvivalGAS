@@ -1,13 +1,11 @@
 // Copyright Marco Freemantle
 
 #include "SGComponents/CombatComponent.h"
-#include "Camera/CameraComponent.h"
 #include "Character/SGCharacter.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
-#include "Player/SGPlayerController.h"
 #include "SGTypes/CombatState.h"
 #include "Weapon/Weapon.h"
 
@@ -38,7 +36,6 @@ void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	DOREPLIFETIME(UCombatComponent, bIsBlocking);
 }
 
-// Called on the Server from ASGCharacter
 void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 {
 	if(Character == nullptr || WeaponToEquip == nullptr) return;
@@ -55,20 +52,6 @@ void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 	{
 		EquipPrimaryWeapon(WeaponToEquip);
 	}
-}
-
-void UCombatComponent::DropWeapon()
-{
-	if(Character == nullptr) return;
-	if(EquippedWeapon)
-	{
-		EquippedWeapon->Dropped();
-		EquippedWeapon->GetWeaponMesh()->AddImpulse(Character->GetFollowCamera()->GetForwardVector() * 200.f, FName(), true);
-		CombatState = ECombatState::ECS_Unoccupied;
-		PlayDropWeaponSound(EquippedWeapon);
-	}
-	Controller = Controller == nullptr ? Cast<ASGPlayerController>(Character->Controller) : Controller;
-	EquippedWeapon = nullptr;
 }
 
 void UCombatComponent::Attack()
@@ -148,6 +131,7 @@ void UCombatComponent::ResetCombo()
 void UCombatComponent::AttackFinished()
 {
 	CombatState = ECombatState::ECS_Unoccupied;
+	Character->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
 }
 
 void UCombatComponent::PlayEquipWeaponSound(const AWeapon* WeaponToEquip) const
@@ -158,20 +142,9 @@ void UCombatComponent::PlayEquipWeaponSound(const AWeapon* WeaponToEquip) const
 	}
 }
 
-void UCombatComponent::PlayDropWeaponSound(const AWeapon* WeaponToDrop) const
-{
-	if(WeaponToDrop->DropSound)
-	{
-		UGameplayStatics::PlaySoundAtLocation(this, WeaponToDrop->DropSound, WeaponToDrop->GetActorLocation());
-	}
-}
-
 void UCombatComponent::EquipPrimaryWeapon(AWeapon* WeaponToEquip)
 {
-	if(EquippedWeapon)
-	{
-		EquippedWeapon->Dropped();
-	}
+	if(EquippedWeapon) return;
 	CombatState = ECombatState::ECS_Unoccupied;
 	EquippedWeapon = WeaponToEquip;
 	EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
@@ -210,18 +183,6 @@ void UCombatComponent::OnRep_EquippedWeapon(const AWeapon* OldWeapon)
 		{
 			PlayEquipWeaponSound(EquippedWeapon);
 		}
-	}
-	if(!EquippedWeapon && Character)
-	{
-		Controller = Controller == nullptr ? Cast<ASGPlayerController>(Character->Controller) : Controller;
-		if(OldWeapon)
-		{
-			PlayDropWeaponSound(OldWeapon);
-		}
-	}
-	if(OldWeapon && Character && Character->IsLocallyControlled())
-	{
-		OldWeapon->GetWeaponMesh()->SetVisibility(true);
 	}
 }
 

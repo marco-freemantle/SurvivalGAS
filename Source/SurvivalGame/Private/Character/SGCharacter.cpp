@@ -62,6 +62,17 @@ void ASGCharacter::PostInitializeComponents()
 void ASGCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if(HasAuthority())
+	{
+		OnTakeAnyDamage.AddDynamic(this, &ASGCharacter::ReceiveDamage);
+	}
+}
+
+void ASGCharacter::ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType,
+	AController* InstigatorController, AActor* DamageCauser)
+{
+	
 }
 
 void ASGCharacter::Tick(float DeltaTime)
@@ -101,11 +112,6 @@ void ASGCharacter::InteractButtonPressed()
 	ServerInteract();
 }
 
-void ASGCharacter::DropEquippedWeaponButtonPressed()
-{
-	ServerDropEquippedWeapon();
-}
-
 void ASGCharacter::SwapWeaponsButtonPressed()
 {
 }
@@ -142,14 +148,6 @@ void ASGCharacter::ServerInteract_Implementation()
 	if(OverlappingWeapon && CombatComponent)
 	{
 		CombatComponent->EquipWeapon(OverlappingWeapon);
-	}
-}
-
-void ASGCharacter::ServerDropEquippedWeapon_Implementation()
-{
-	if(CombatComponent)
-	{
-		CombatComponent->DropWeapon();
 	}
 }
 
