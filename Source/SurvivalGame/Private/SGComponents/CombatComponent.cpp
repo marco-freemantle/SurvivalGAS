@@ -4,6 +4,7 @@
 #include "Character/SGCharacter.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 #include "SGTypes/CombatState.h"
 #include "Weapon/Weapon.h"
@@ -186,6 +187,8 @@ void UCombatComponent::SheathCurrentWeapon()
 		{
 			AttachShieldToBack(Shield);
 			bIsShieldDrawn = false;
+			bIsBlocking = false;
+			Character->GetCharacterMovement()->MaxWalkSpeed = BaseWalkSpeed;
 		}
 	}
 	else
@@ -197,7 +200,13 @@ void UCombatComponent::SheathCurrentWeapon()
 
 void UCombatComponent::Attack()
 {
-	if(!EquippedWeapon) return;
+	if(!EquippedWeapon || Character->GetCharacterMovement()->IsFalling()) return;
+	FTimerHandle Timer;
+	
+	GetWorld()->GetTimerManager().SetTimer(Timer, [this]()
+	{
+		Character->GetCharacterMovement()->DisableMovement();
+	}, .1f, false);
 	switch (AttackCombo)
 	{
 	case 0:

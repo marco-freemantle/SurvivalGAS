@@ -26,7 +26,9 @@ void ULockonComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 
 	if(LockonTarget && Character && Character->IsLocallyControlled())
 	{
-		const FRotator PlayerRot = UKismetMathLibrary::FindLookAtRotation(Character->GetActorLocation(),LockonTarget->GetActorLocation());
+		FVector LockonTargetOffset = LockonTarget->GetActorLocation();
+		LockonTargetOffset.Z += 75.f;
+		const FRotator PlayerRot = UKismetMathLibrary::FindLookAtRotation(Character->GetActorLocation(),LockonTargetOffset);
 		Character->GetController()->SetControlRotation(PlayerRot);
 	}
 }
