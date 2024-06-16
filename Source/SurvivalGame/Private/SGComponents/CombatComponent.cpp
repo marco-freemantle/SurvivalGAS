@@ -30,28 +30,99 @@ void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(UCombatComponent, EquippedWeapon);
+	DOREPLIFETIME(UCombatComponent, PrimaryWeapon);
 	DOREPLIFETIME(UCombatComponent, SecondaryWeapon);
 	DOREPLIFETIME(UCombatComponent, Shield);
 	DOREPLIFETIME(UCombatComponent, CombatState);
 	DOREPLIFETIME(UCombatComponent, bIsBlocking);
+	DOREPLIFETIME(UCombatComponent, bIsShieldDrawn);
 }
 
 void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 {
 	if(Character == nullptr || WeaponToEquip == nullptr) return;
 
-	if(WeaponToEquip->GetWeaponType() == EWeaponType::EWT_Shield)
+	if(WeaponToEquip->GetWeaponType() == EWeaponType::EWT_Shield && !Shield)
 	{
 		EquipShield(WeaponToEquip);
 	}
-	else if(EquippedWeapon != nullptr && SecondaryWeapon == nullptr)
+	else if(PrimaryWeapon != nullptr && SecondaryWeapon == nullptr)
 	{
 		EquipSecondaryWeapon(WeaponToEquip);
 	}
-	else
+	else if(PrimaryWeapon == nullptr && SecondaryWeapon == nullptr)
 	{
 		EquipPrimaryWeapon(WeaponToEquip);
 	}
+}
+
+void UCombatComponent::EquipPrimaryWeapon(AWeapon* WeaponToEquip)
+{
+	if(EquippedWeapon) return;
+	CombatState = ECombatState::ECS_Unoccupied;
+	PrimaryWeapon = WeaponToEquip;
+	PrimaryWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
+	PrimaryWeapon->SetOwner(Character);
+	Attach1HSwordToSide(PrimaryWeapon);
+}
+
+void UCombatComponent::EquipSecondaryWeapon(AWeapon* WeaponToEquip)
+{
+	if (WeaponToEquip == nullptr) return;
+	SecondaryWeapon = WeaponToEquip;
+	SecondaryWeapon->SetWeaponState(EWeaponState::EWS_EquippedSecondary);
+	SecondaryWeapon->SetOwner(Character);
+	AttachActorToBack(WeaponToEquip);
+}
+
+void UCombatComponent::EquipShield(AWeapon* WeaponToEquip)
+{
+	CombatState = ECombatState::ECS_Unoccupied;
+	Shield = WeaponToEquip;
+	Shield->SetWeaponState(EWeaponState::EWS_Equipped);
+	Shield->SetOwner(Character);
+
+	// If 1H sword is already drawn then draw shield
+	if(EquippedWeapon && EquippedWeapon->GetWeaponType() == EWeaponType::EWT_1HSword)
+	{
+		AttachActorToLeftHand(Shield);
+		bIsShieldDrawn = true;
+	}
+	else
+	{
+		AttachShieldToBack(Shield);
+	}
+}
+
+void UCombatComponent::DrawPrimaryWeapon()
+{
+	// Weapon already drawn -> sheath it
+	if(PrimaryWeapon && EquippedWeapon)
+	{
+		if(EquippedWeapon->GetWeaponType() == EWeaponType::EWT_1HSword && Shield)
+		{
+			Attach1HSwordToSide(EquippedWeapon);
+			AttachShieldToBack(Shield);
+			EquippedWeapon = nullptr;
+			bIsShieldDrawn = false;
+		}
+	}
+	// Primary not draw -> draw it
+	else if(PrimaryWeapon && !EquippedWeapon)
+	{
+		EquippedWeapon = PrimaryWeapon;
+		AttachActorToRightHand(EquippedWeapon);
+		// Draw shield as well if 1H Sword
+		if(EquippedWeapon->GetWeaponType() == EWeaponType::EWT_1HSword && Shield)
+		{
+			AttachActorToLeftHand(Shield);
+			bIsShieldDrawn = true;
+		}
+	}
+}
+
+void UCombatComponent::DrawSecondaryWeapon()
+{
 }
 
 void UCombatComponent::Attack()
@@ -90,7 +161,7 @@ void UCombatComponent::Attack()
 
 void UCombatComponent::Block()
 {
-	if(!Shield) return;
+	if(!Shield || !bIsShieldDrawn) return;
 	bIsBlocking = true;
 	if(Character && Character->GetMovementComponent())
 	{
@@ -134,62 +205,21 @@ void UCombatComponent::AttackFinished()
 	Character->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
 }
 
-void UCombatComponent::PlayEquipWeaponSound(const AWeapon* WeaponToEquip) const
-{
-	if(WeaponToEquip->EquipSound)
-	{
-		UGameplayStatics::PlaySoundAtLocation(this, WeaponToEquip->EquipSound, WeaponToEquip->GetActorLocation());
-	}
-}
-
-void UCombatComponent::EquipPrimaryWeapon(AWeapon* WeaponToEquip)
-{
-	if(EquippedWeapon) return;
-	CombatState = ECombatState::ECS_Unoccupied;
-	EquippedWeapon = WeaponToEquip;
-	EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
-	AttachActorToRightHand(EquippedWeapon);
-	PlayEquipWeaponSound(EquippedWeapon);
-	EquippedWeapon->SetOwner(Character);
-}
-
-void UCombatComponent::EquipSecondaryWeapon(AWeapon* WeaponToEquip)
-{
-	if (WeaponToEquip == nullptr) return;
-	SecondaryWeapon = WeaponToEquip;
-	SecondaryWeapon->SetWeaponState(EWeaponState::EWS_EquippedSecondary);
-	SecondaryWeapon->SetOwner(Character);
-	AttachActorToBack(WeaponToEquip);
-	PlayEquipWeaponSound(SecondaryWeapon);
-}
-
-void UCombatComponent::EquipShield(AWeapon* WeaponToEquip)
-{
-	CombatState = ECombatState::ECS_Unoccupied;
-	Shield = WeaponToEquip;
-	Shield->SetWeaponState(EWeaponState::EWS_Equipped);
-	AttachActorToLeftHand(Shield);
-	PlayEquipWeaponSound(Shield);
-	Shield->SetOwner(Character);
-}
-
 void UCombatComponent::OnRep_EquippedWeapon(const AWeapon* OldWeapon)
 {
 	if(EquippedWeapon && Character)
 	{
 		EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
 		AttachActorToRightHand(EquippedWeapon);
-		if(!SecondaryWeapon)
-		{
-			PlayEquipWeaponSound(EquippedWeapon);
-		}
 	}
+}
+
+void UCombatComponent::OnRep_PrimaryWeapon(const AWeapon* OldWeapon)
+{
 }
 
 void UCombatComponent::OnRep_SecondaryWeapon(const AWeapon* OldWeapon)
 {
-	if(!OldWeapon) PlayEquipWeaponSound(SecondaryWeapon);
-
 	if(SecondaryWeapon && Character)
 	{
 		SecondaryWeapon->SetWeaponState(EWeaponState::EWS_EquippedSecondary);
@@ -225,6 +255,22 @@ void UCombatComponent::AttachActorToBack(AActor* ActorToAttach) const
 	}
 }
 
+void UCombatComponent::AttachShieldToBack(AActor* ActorToAttach) const
+{
+	if(const USkeletalMeshSocket* HandSocket = Character->GetMesh()->GetSocketByName(FName("ShieldSocket")))
+	{
+		HandSocket->AttachActor(ActorToAttach, Character->GetMesh());
+	}
+}
+
+void UCombatComponent::Attach1HSwordToSide(AActor* ActorToAttach) const
+{
+	if(const USkeletalMeshSocket* HandSocket = Character->GetMesh()->GetSocketByName(FName("1HSwordSocket")))
+	{
+		HandSocket->AttachActor(ActorToAttach, Character->GetMesh());
+	}
+}
+
 void UCombatComponent::FinishSwapWeapons()
 {
 	if(Character && Character->HasAuthority())
@@ -237,7 +283,6 @@ void UCombatComponent::FinishSwapAttachWeapon()
 {
 	EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
 	AttachActorToRightHand(EquippedWeapon);
-	PlayEquipWeaponSound(EquippedWeapon);
 
 	SecondaryWeapon->SetWeaponState(EWeaponState::EWS_EquippedSecondary);
 	AttachActorToBack(SecondaryWeapon);

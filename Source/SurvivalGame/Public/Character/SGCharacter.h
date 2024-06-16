@@ -37,6 +37,8 @@ public:
 	void AttackButtonPressed();
 	void BlockButtonPressed();
 	void BlockButtonReleased();
+	void DrawPrimaryButtonPressed();
+	void DrawSecondaryButtonPressed();
 
 protected:
 	virtual void BeginPlay() override;
@@ -87,6 +89,12 @@ private:
 
 	UFUNCTION(Server, Reliable)
 	void ServerUnblock();
+
+	UFUNCTION(Server, Reliable)
+	void ServerDrawPrimary();
+
+	UFUNCTION(Server, Reliable)
+	void ServerDrawSecondary();
 
 public:
 	FORCEINLINE ULockonComponent* GetLockonComponent() const { return LockonComponent; }

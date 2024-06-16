@@ -143,6 +143,24 @@ void ASGCharacter::BlockButtonReleased()
 	ServerUnblock();
 }
 
+void ASGCharacter::DrawPrimaryButtonPressed()
+{
+	if(!HasAuthority())
+	{
+		CombatComponent->DrawPrimaryWeapon();
+	}
+	ServerDrawPrimary();
+}
+
+void ASGCharacter::DrawSecondaryButtonPressed()
+{
+	if(!HasAuthority())
+	{
+		CombatComponent->DrawSecondaryWeapon();
+	}
+	ServerDrawSecondary();
+}
+
 void ASGCharacter::ServerInteract_Implementation()
 {
 	if(OverlappingWeapon && CombatComponent)
@@ -177,6 +195,16 @@ void ASGCharacter::ServerUnblock_Implementation()
 	{
 		CombatComponent->Unblock();
 	}
+}
+
+void ASGCharacter::ServerDrawPrimary_Implementation()
+{
+	CombatComponent->DrawPrimaryWeapon();
+}
+
+void ASGCharacter::ServerDrawSecondary_Implementation()
+{
+	CombatComponent->DrawSecondaryWeapon();
 }
 
 void ASGCharacter::PlaySwapWeaponsMontage() const

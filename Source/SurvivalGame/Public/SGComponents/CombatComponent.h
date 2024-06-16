@@ -26,14 +26,21 @@ public:
 
 	void EquipWeapon(AWeapon* WeaponToEquip);
 	void SwapWeapons();
-	void PlayEquipWeaponSound(const AWeapon* WeaponToEquip) const;
 	void Attack();
 	void Block();
 	void Unblock();
 
+	void DrawPrimaryWeapon();
+	void DrawSecondaryWeapon();
+
+	UPROPERTY(Replicated)
+	bool bIsShieldDrawn = false;
+
 	void AttachActorToRightHand(AActor* ActorToAttach) const;
 	void AttachActorToLeftHand(AActor* ActorToAttach) const;
 	void AttachActorToBack(AActor* ActorToAttach) const;
+	void AttachShieldToBack(AActor* ActorToAttach) const;
+	void Attach1HSwordToSide(AActor* ActorToAttach) const;
 
 	UFUNCTION(BlueprintCallable)
 	void FinishSwapWeapons();
@@ -43,6 +50,9 @@ public:
 
 	UPROPERTY(ReplicatedUsing = OnRep_EquippedWeapon, BlueprintReadOnly)
 	AWeapon* EquippedWeapon;
+
+	UPROPERTY(ReplicatedUsing = OnRep_PrimaryWeapon, BlueprintReadOnly)
+	AWeapon* PrimaryWeapon;
 
 	UPROPERTY(ReplicatedUsing = OnRep_SecondaryWeapon, BlueprintReadOnly)
 	AWeapon* SecondaryWeapon;
@@ -58,6 +68,9 @@ protected:
 
 	UFUNCTION()
 	void OnRep_EquippedWeapon(const AWeapon* OldWeapon);
+
+	UFUNCTION()
+	void OnRep_PrimaryWeapon(const AWeapon* OldWeapon);
 
 	UFUNCTION()
 	void OnRep_SecondaryWeapon(const AWeapon* OldWeapon);

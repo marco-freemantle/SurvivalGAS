@@ -68,13 +68,14 @@ void ASGPlayerController::SetupInputComponent()
 	SGInputComponent->BindAction(CrouchAction, ETriggerEvent::Started, this, &ASGPlayerController::Crouch);
 	SGInputComponent->BindAction(CrouchAction, ETriggerEvent::Completed, this, &ASGPlayerController::UnCrouch);
 	SGInputComponent->BindAction(PauseGameAction, ETriggerEvent::Started, this, &ASGPlayerController::PauseGame);
-	SGInputComponent->BindAction(SwapWeaponsAction, ETriggerEvent::Started, this, &ASGPlayerController::SwapWeapons);
 	SGInputComponent->BindAction(LockonAction, ETriggerEvent::Started, this, &ASGPlayerController::Lockon);
 	SGInputComponent->BindAction(AttackAction, ETriggerEvent::Triggered, this, &ASGPlayerController::Attack);
 	SGInputComponent->BindAction(BlockAction, ETriggerEvent::Started, this, &ASGPlayerController::Block);
 	SGInputComponent->BindAction(BlockAction, ETriggerEvent::Completed, this, &ASGPlayerController::Unblock);
 	SGInputComponent->BindAction(SwitchLockonTargetLeftAction, ETriggerEvent::Started, this, &ASGPlayerController::SwitchLockonTargetLeft);
 	SGInputComponent->BindAction(SwitchLockonTargetRightAction, ETriggerEvent::Started, this, &ASGPlayerController::SwitchLockonTargetRight);
+	SGInputComponent->BindAction(DrawPrimaryAction, ETriggerEvent::Started, this, &ASGPlayerController::DrawPrimary);
+	SGInputComponent->BindAction(DrawSecondaryAction, ETriggerEvent::Started, this, &ASGPlayerController::DrawSecondary);
 }
 
 void ASGPlayerController::Move(const FInputActionValue& InputActionValue)
@@ -176,11 +177,19 @@ void ASGPlayerController::UnCrouch(const FInputActionValue& InputActionValue)
 	}
 }
 
-void ASGPlayerController::SwapWeapons(const FInputActionValue& InputActionValue)
+void ASGPlayerController::DrawPrimary(const FInputActionValue& InputActionValue)
 {
 	if (ASGCharacter* SGCharacter = Cast<ASGCharacter>(GetCharacter()))
 	{
-		
+		SGCharacter->DrawPrimaryButtonPressed();
+	}
+}
+
+void ASGPlayerController::DrawSecondary(const FInputActionValue& InputActionValue)
+{
+	if (ASGCharacter* SGCharacter = Cast<ASGCharacter>(GetCharacter()))
+	{
+		SGCharacter->DrawSecondaryButtonPressed();
 	}
 }
 

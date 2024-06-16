@@ -56,9 +56,6 @@ private:
 	TObjectPtr<UInputAction> CrouchAction;
 
 	UPROPERTY(EditAnywhere, Category = "Input")
-	TObjectPtr<UInputAction> SwapWeaponsAction;
-
-	UPROPERTY(EditAnywhere, Category = "Input")
 	TObjectPtr<UInputAction> PauseGameAction;
 
 	UPROPERTY(EditAnywhere, Category = "Input")
@@ -76,6 +73,12 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Input")
 	TObjectPtr<UInputAction> SwitchLockonTargetRightAction;
 
+	UPROPERTY(EditAnywhere, Category = "Input")
+	TObjectPtr<UInputAction> DrawPrimaryAction;
+
+	UPROPERTY(EditAnywhere, Category = "Input")
+	TObjectPtr<UInputAction> DrawSecondaryAction;
+
 	void Move(const FInputActionValue& InputActionValue);
 	void LookUp(const FInputActionValue& InputActionValue);
 	void Turn(const FInputActionValue& InputActionValue);
@@ -83,7 +86,8 @@ private:
 	void Interact(const FInputActionValue& InputActionValue);
 	void Crouch(const FInputActionValue& InputActionValue);
 	void UnCrouch(const FInputActionValue& InputActionValue);
-	void SwapWeapons(const FInputActionValue& InputActionValue);
+	void DrawPrimary(const FInputActionValue& InputActionValue);
+	void DrawSecondary(const FInputActionValue& InputActionValue);
 	void Lockon(const FInputActionValue& InputActionValue);
 	void SwitchLockonTargetLeft(const FInputActionValue& InputActionValue);
 	void SwitchLockonTargetRight(const FInputActionValue& InputActionValue);
