@@ -4,7 +4,6 @@
 #include "Character/SGCharacter.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 #include "SGTypes/CombatState.h"
 #include "Weapon/Weapon.h"
@@ -58,12 +57,19 @@ void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 
 void UCombatComponent::EquipPrimaryWeapon(AWeapon* WeaponToEquip)
 {
-	if(EquippedWeapon) return;
+	if (WeaponToEquip == nullptr) return;
 	CombatState = ECombatState::ECS_Unoccupied;
 	PrimaryWeapon = WeaponToEquip;
 	PrimaryWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
 	PrimaryWeapon->SetOwner(Character);
-	Attach1HSwordToSide(PrimaryWeapon);
+	if(PrimaryWeapon->GetWeaponType() == EWeaponType::EWT_1HSword)
+	{
+		Attach1HToSide(PrimaryWeapon);
+	}
+	else
+	{
+		Attach2HToBack(PrimaryWeapon);
+	}
 }
 
 void UCombatComponent::EquipSecondaryWeapon(AWeapon* WeaponToEquip)
@@ -72,11 +78,19 @@ void UCombatComponent::EquipSecondaryWeapon(AWeapon* WeaponToEquip)
 	SecondaryWeapon = WeaponToEquip;
 	SecondaryWeapon->SetWeaponState(EWeaponState::EWS_EquippedSecondary);
 	SecondaryWeapon->SetOwner(Character);
-	AttachActorToBack(WeaponToEquip);
+	if(SecondaryWeapon->GetWeaponType() == EWeaponType::EWT_1HSword)
+	{
+		Attach1HToSide(SecondaryWeapon);
+	}
+	else
+	{
+		Attach2HToBack(SecondaryWeapon);
+	}
 }
 
 void UCombatComponent::EquipShield(AWeapon* WeaponToEquip)
 {
+	if (WeaponToEquip == nullptr) return;
 	CombatState = ECombatState::ECS_Unoccupied;
 	Shield = WeaponToEquip;
 	Shield->SetWeaponState(EWeaponState::EWS_Equipped);
@@ -96,33 +110,89 @@ void UCombatComponent::EquipShield(AWeapon* WeaponToEquip)
 
 void UCombatComponent::DrawPrimaryWeapon()
 {
-	// Weapon already drawn -> sheath it
-	if(PrimaryWeapon && EquippedWeapon)
+	// Primary already drawn -> sheath it
+	if(PrimaryWeapon && EquippedWeapon && PrimaryWeapon == EquippedWeapon)
 	{
-		if(EquippedWeapon->GetWeaponType() == EWeaponType::EWT_1HSword && Shield)
-		{
-			Attach1HSwordToSide(EquippedWeapon);
-			AttachShieldToBack(Shield);
-			EquippedWeapon = nullptr;
-			bIsShieldDrawn = false;
-		}
+		SheathCurrentWeapon();
+		return;
 	}
-	// Primary not draw -> draw it
-	else if(PrimaryWeapon && !EquippedWeapon)
+	// Secondary already drawn -> sheath it
+	if(SecondaryWeapon && EquippedWeapon && SecondaryWeapon == EquippedWeapon)
+	{
+		SheathCurrentWeapon();
+	}
+	// Draw primary weapon
+	if(PrimaryWeapon && !EquippedWeapon)
 	{
 		EquippedWeapon = PrimaryWeapon;
-		AttachActorToRightHand(EquippedWeapon);
-		// Draw shield as well if 1H Sword
-		if(EquippedWeapon->GetWeaponType() == EWeaponType::EWT_1HSword && Shield)
+
+		if(EquippedWeapon->GetWeaponType() == EWeaponType::EWT_1HSword)
 		{
-			AttachActorToLeftHand(Shield);
-			bIsShieldDrawn = true;
+			AttachActorToRightHand(EquippedWeapon);
+			if(Shield)
+			{
+				AttachActorToLeftHand(Shield);
+				bIsShieldDrawn = true;
+			}
+		}
+		else
+		{
+			AttachActorToRightHand(EquippedWeapon);
 		}
 	}
 }
 
 void UCombatComponent::DrawSecondaryWeapon()
 {
+	// Secondary already drawn -> sheath it
+	if(SecondaryWeapon && EquippedWeapon && SecondaryWeapon == EquippedWeapon)
+	{
+		SheathCurrentWeapon();
+		return;
+	}
+	// Primary already drawn -> sheath it
+	if(PrimaryWeapon && EquippedWeapon && PrimaryWeapon == EquippedWeapon)
+	{
+		SheathCurrentWeapon();
+	}
+	// Draw Secondary weapon
+	if(SecondaryWeapon && !EquippedWeapon)
+	{
+		EquippedWeapon = SecondaryWeapon;
+
+		if(EquippedWeapon->GetWeaponType() == EWeaponType::EWT_1HSword)
+		{
+			AttachActorToRightHand(EquippedWeapon);
+			if(Shield)
+			{
+				AttachActorToLeftHand(Shield);
+				bIsShieldDrawn = true;
+			}
+		}
+		else
+		{
+			AttachActorToRightHand(EquippedWeapon);
+		}
+	}
+}
+
+void UCombatComponent::SheathCurrentWeapon()
+{
+	if(EquippedWeapon->GetWeaponType() == EWeaponType::EWT_1HSword)
+	{
+		Attach1HToSide(EquippedWeapon);
+		EquippedWeapon = nullptr;
+		if(Shield)
+		{
+			AttachShieldToBack(Shield);
+			bIsShieldDrawn = false;
+		}
+	}
+	else
+	{
+		Attach2HToBack(EquippedWeapon);
+		EquippedWeapon = nullptr;
+	}
 }
 
 void UCombatComponent::Attack()
@@ -216,6 +286,10 @@ void UCombatComponent::OnRep_EquippedWeapon(const AWeapon* OldWeapon)
 
 void UCombatComponent::OnRep_PrimaryWeapon(const AWeapon* OldWeapon)
 {
+	if(PrimaryWeapon && Character)
+	{
+		PrimaryWeapon->SetWeaponState(EWeaponState::EWS_EquippedPrimary);
+	}
 }
 
 void UCombatComponent::OnRep_SecondaryWeapon(const AWeapon* OldWeapon)
@@ -223,12 +297,7 @@ void UCombatComponent::OnRep_SecondaryWeapon(const AWeapon* OldWeapon)
 	if(SecondaryWeapon && Character)
 	{
 		SecondaryWeapon->SetWeaponState(EWeaponState::EWS_EquippedSecondary);
-		AttachActorToBack(SecondaryWeapon);
 	}
-}
-
-void UCombatComponent::OnRep_Shield(const AWeapon* OldShield)
-{
 }
 
 void UCombatComponent::AttachActorToRightHand(AActor* ActorToAttach) const
@@ -247,14 +316,6 @@ void UCombatComponent::AttachActorToLeftHand(AActor* ActorToAttach) const
 	}
 }
 
-void UCombatComponent::AttachActorToBack(AActor* ActorToAttach) const
-{
-	if(const USkeletalMeshSocket* HandSocket = Character->GetMesh()->GetSocketByName(FName("SecondaryWeaponSocket")))
-	{
-		HandSocket->AttachActor(ActorToAttach, Character->GetMesh());
-	}
-}
-
 void UCombatComponent::AttachShieldToBack(AActor* ActorToAttach) const
 {
 	if(const USkeletalMeshSocket* HandSocket = Character->GetMesh()->GetSocketByName(FName("ShieldSocket")))
@@ -263,9 +324,17 @@ void UCombatComponent::AttachShieldToBack(AActor* ActorToAttach) const
 	}
 }
 
-void UCombatComponent::Attach1HSwordToSide(AActor* ActorToAttach) const
+void UCombatComponent::Attach2HToBack(AActor* ActorToAttach) const
 {
-	if(const USkeletalMeshSocket* HandSocket = Character->GetMesh()->GetSocketByName(FName("1HSwordSocket")))
+	if(const USkeletalMeshSocket* HandSocket = Character->GetMesh()->GetSocketByName(FName("2HSocket")))
+	{
+		HandSocket->AttachActor(ActorToAttach, Character->GetMesh());
+	}
+}
+
+void UCombatComponent::Attach1HToSide(AActor* ActorToAttach) const
+{
+	if(const USkeletalMeshSocket* HandSocket = Character->GetMesh()->GetSocketByName(FName("1HSocket")))
 	{
 		HandSocket->AttachActor(ActorToAttach, Character->GetMesh());
 	}
@@ -285,7 +354,7 @@ void UCombatComponent::FinishSwapAttachWeapon()
 	AttachActorToRightHand(EquippedWeapon);
 
 	SecondaryWeapon->SetWeaponState(EWeaponState::EWS_EquippedSecondary);
-	AttachActorToBack(SecondaryWeapon);
+	// TODO: Deal with attachments
 }
 
 void UCombatComponent::OnRep_CombatState()

@@ -72,6 +72,8 @@ void AWeapon::OnWeaponStateSet()
 		break;
 	case EWeaponState::EWS_EquippedSecondary:
 		OnEquippedSecondary();
+	case EWeaponState::EWS_EquippedPrimary:
+		OnEquippedSecondary();
 		break;
 	}
 }
