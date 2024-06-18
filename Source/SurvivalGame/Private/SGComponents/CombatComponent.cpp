@@ -201,12 +201,6 @@ void UCombatComponent::SheathCurrentWeapon()
 void UCombatComponent::Attack()
 {
 	if(!EquippedWeapon || Character->GetCharacterMovement()->IsFalling()) return;
-	FTimerHandle Timer;
-	
-	GetWorld()->GetTimerManager().SetTimer(Timer, [this]()
-	{
-		Character->GetCharacterMovement()->DisableMovement();
-	}, .1f, false);
 	switch (AttackCombo)
 	{
 	case 0:
@@ -311,7 +305,7 @@ void UCombatComponent::OnRep_SecondaryWeapon(const AWeapon* OldWeapon)
 
 void UCombatComponent::AttachActorToRightHand(AActor* ActorToAttach) const
 {
-	if(const USkeletalMeshSocket* HandSocket = Character->GetMesh()->GetSocketByName(FName("RightHandSocket")))
+	if(const USkeletalMeshSocket* HandSocket = Character->GetMesh()->GetSocketByName(FName("1HSwordRightHandSocket")))
 	{
 		HandSocket->AttachActor(ActorToAttach, Character->GetMesh());
 	}
@@ -343,7 +337,7 @@ void UCombatComponent::Attach2HToBack(AActor* ActorToAttach) const
 
 void UCombatComponent::Attach1HToSide(AActor* ActorToAttach) const
 {
-	if(const USkeletalMeshSocket* HandSocket = Character->GetMesh()->GetSocketByName(FName("1HSocket")))
+	if(const USkeletalMeshSocket* HandSocket = Character->GetMesh()->GetSocketByName(FName("1HSideSocket")))
 	{
 		HandSocket->AttachActor(ActorToAttach, Character->GetMesh());
 	}
