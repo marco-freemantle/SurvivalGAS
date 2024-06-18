@@ -2,10 +2,8 @@
 
 #include "Weapon/Weapon.h"
 #include "Character/SGCharacter.h"
-#include "Components/BoxComponent.h"
 #include "Components/SphereComponent.h"
 #include "Components/WidgetComponent.h"
-#include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 
 AWeapon::AWeapon()
@@ -24,11 +22,6 @@ AWeapon::AWeapon()
 	AreaSphere->SetCollisionResponseToAllChannels(ECR_Ignore);
 	AreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
-	BoxCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxCollision"));
-	BoxCollision->SetupAttachment(RootComponent);
-	BoxCollision->SetCollisionResponseToAllChannels(ECR_Ignore);
-	BoxCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
 	PickupWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("PickupWidget"));
 	PickupWidget->SetupAttachment(RootComponent);
 }
@@ -43,10 +36,6 @@ void AWeapon::BeginPlay()
 		AreaSphere->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 		AreaSphere->OnComponentBeginOverlap.AddDynamic(this, &AWeapon::OnSphereOverlap);
 		AreaSphere->OnComponentEndOverlap.AddDynamic(this, &AWeapon::OnSphereEndOverlap);
-		BoxCollision->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-		BoxCollision->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
-		BoxCollision->OnComponentBeginOverlap.AddDynamic(this, &AWeapon::OnBoxOverlap);
-		BoxCollision->OnComponentEndOverlap.AddDynamic(this, &AWeapon::OnBoxEndOverlap);
 		SetReplicateMovement(true);
 	}
 	
@@ -129,22 +118,6 @@ void AWeapon::OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActo
 	}
 }
 
-void AWeapon::OnBoxOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp,
-	int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
-{
-	// Trace active and not overlapping self
-	if(bIsTraceActive && OtherActor && GetOwner() && OtherActor != GetOwner())
-	{
-		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 5.f, FColor::Red, FString::Printf(TEXT("%s"), *OtherActor->GetName()));
-		UGameplayStatics::ApplyDamage(OtherActor, 25.f, GetOwner()->GetInstigatorController(), this, UDamageType::StaticClass());
-	}
-}
-
-void AWeapon::OnBoxEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
-{
-}
-
 void AWeapon::SetWeaponState(EWeaponState State)
 {
 	WeaponState = State;
@@ -162,15 +135,5 @@ void AWeapon::ShowPickupWidget(bool bShowWidget) const
 	{
 		PickupWidget->SetVisibility(bShowWidget);
 	}
-}
-
-void AWeapon::StartTraceAttack()
-{
-	bIsTraceActive = true;
-}
-
-void AWeapon::EndTraceAttack()
-{
-	bIsTraceActive = false;
 }
 

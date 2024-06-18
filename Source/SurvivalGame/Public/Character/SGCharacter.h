@@ -43,13 +43,6 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-	// HEALTH
-	UPROPERTY(Replicated)
-	float Health;
-
-	UFUNCTION()
-	void ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatorController, AActor* DamageCauser);
-
 private:
 	UPROPERTY(VisibleAnywhere, Category = Camera)
 	USpringArmComponent* CameraBoom;

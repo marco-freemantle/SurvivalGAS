@@ -122,6 +122,7 @@ void ASGPlayerController::Jump(const FInputActionValue& InputActionValue)
 {
 	if (ASGCharacter* SGCharacter = Cast<ASGCharacter>(GetCharacter()))
 	{
+		if(SGCharacter->GetCombatComponent() && SGCharacter->GetCombatComponent()->GetCombatState() == ECombatState::ECS_Unoccupied)
 		SGCharacter->Jump();
 	}
 }

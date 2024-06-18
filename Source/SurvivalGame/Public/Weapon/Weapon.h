@@ -46,14 +46,6 @@ public:
 	UPROPERTY(EditAnywhere)
 	USoundBase* EquipSound;
 
-	UFUNCTION(BlueprintCallable)
-	void StartTraceAttack();
-
-	UFUNCTION(BlueprintCallable)
-	void EndTraceAttack();
-
-	bool bIsTraceActive = false;
-
 protected:
 	virtual void BeginPlay() override;
 	virtual void OnWeaponStateSet();
@@ -66,21 +58,12 @@ protected:
 	UFUNCTION()
 	virtual void OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
-	UFUNCTION()
-	virtual void OnBoxOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
-
-	UFUNCTION()
-	virtual void OnBoxEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
-
 private:
 	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties")
 	USkeletalMeshComponent* WeaponMesh;
 	
 	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties")
 	USphereComponent* AreaSphere;
-
-	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties")
-	UBoxComponent* BoxCollision;
 
 	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties", ReplicatedUsing = OnRep_WeaponState)
 	EWeaponState WeaponState;
@@ -96,4 +79,7 @@ private:
 	
 public:
 	FORCEINLINE EWeaponType GetWeaponType() const { return WeaponType; }
+
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE USkeletalMeshComponent* GetWeaponMesh() const { return WeaponMesh; }
 };

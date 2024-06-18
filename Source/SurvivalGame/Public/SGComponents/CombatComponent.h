@@ -118,4 +118,5 @@ private:
 	
 public:
 	bool ShouldSwapWeapons() const;
+	FORCEINLINE ECombatState GetCombatState() const { return CombatState; }
 };

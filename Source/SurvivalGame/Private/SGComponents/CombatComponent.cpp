@@ -4,7 +4,6 @@
 #include "Character/SGCharacter.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 #include "SGTypes/CombatState.h"
 #include "Weapon/Weapon.h"
