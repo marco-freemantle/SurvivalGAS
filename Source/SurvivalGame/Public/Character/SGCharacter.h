@@ -27,18 +27,21 @@ public:
 
 	void SetOverlappingWeapon(AWeapon* Weapon);
 
-	void PlaySwapWeaponsMontage() const;
-
-	UFUNCTION(NetMulticast, Reliable)
-	void MulticastPlayAttackMontage(UAnimMontage* Montage);
-
 	void InteractButtonPressed();
-	void SwapWeaponsButtonPressed();
 	void AttackButtonPressed();
 	void BlockButtonPressed();
 	void BlockButtonReleased();
 	void DrawPrimaryButtonPressed();
 	void DrawSecondaryButtonPressed();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastPlayAttackMontage(UAnimMontage* Montage);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastPlayDraw1HSwordAndShieldMontage();
+	
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastPlaySheath1HSwordAndShieldMontage();
 
 protected:
 	virtual void BeginPlay() override;
@@ -61,18 +64,18 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	UCombatComponent* CombatComponent;
-
+	
 	UPROPERTY(EditAnywhere, Category=Combat)
-	UAnimMontage* SwapWeaponsMontage;
+	UAnimMontage* Draw1HSwordAndShieldMontage;
+	
+	UPROPERTY(EditAnywhere, Category=Combat)
+	UAnimMontage* Sheath1HSwordAndShieldMontage;
 
 	UFUNCTION()
 	void OnRep_OverlappingWeapon(AWeapon* LastWeapon);
 
 	UFUNCTION(Server, Reliable)
 	void ServerInteract();
-
-	UFUNCTION(Server, Reliable)
-	void ServerSwapWeapons();
 
 	UFUNCTION(Server, Reliable)
 	void ServerAttack();

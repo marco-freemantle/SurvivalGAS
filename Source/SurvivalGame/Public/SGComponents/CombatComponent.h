@@ -18,36 +18,33 @@ class SURVIVALGAME_API UCombatComponent : public UActorComponent
 
 public:	
 	UCombatComponent();
-
 	friend class ASGCharacter;
-
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	void EquipWeapon(AWeapon* WeaponToEquip);
-	void SwapWeapons();
 	void Attack();
 	void Block();
 	void Unblock();
 
 	void DrawPrimaryWeapon();
 	void DrawSecondaryWeapon();
-	void SheathCurrentWeapon();
 
 	UPROPERTY(Replicated)
 	bool bIsShieldDrawn = false;
 
-	void AttachActorToRightHand(AActor* ActorToAttach) const;
-	void AttachActorToLeftHand(AActor* ActorToAttach) const;
+	void Attach1HSwordToRightHand(AActor* ActorToAttach) const;
+	void AttachShieldToLeftHand(AActor* ActorToAttach) const;
 	void AttachShieldToBack(AActor* ActorToAttach) const;
 	void Attach2HToBack(AActor* ActorToAttach) const;
 	void Attach1HToSide(AActor* ActorToAttach) const;
 
+	// Called from anim notify
 	UFUNCTION(BlueprintCallable)
-	void FinishSwapWeapons();
+	void UnSheathAttach1HSwordAndShield();
 
 	UFUNCTION(BlueprintCallable)
-	void FinishSwapAttachWeapon();
+	void SheathAttach1HSwordAndShield();
 
 	UPROPERTY(ReplicatedUsing = OnRep_EquippedWeapon, BlueprintReadOnly)
 	AWeapon* EquippedWeapon;
@@ -111,12 +108,11 @@ private:
 	UAnimMontage* AttackCMontage;
 
 	UPROPERTY(EditAnywhere)
-	float BaseWalkSpeed;
+	float BaseWalkSpeed = 450.f;
 
 	UPROPERTY(EditAnywhere)
-	float BlockWalkSpeed;
+	float BlockWalkSpeed = 175.f;
 	
 public:
-	bool ShouldSwapWeapons() const;
 	FORCEINLINE ECombatState GetCombatState() const { return CombatState; }
 };

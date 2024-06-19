@@ -101,10 +101,6 @@ void ASGCharacter::InteractButtonPressed()
 	ServerInteract();
 }
 
-void ASGCharacter::SwapWeaponsButtonPressed()
-{
-}
-
 void ASGCharacter::AttackButtonPressed()
 {
 	if(CombatComponent->CombatState != ECombatState::ECS_Attacking && !HasAuthority())
@@ -158,10 +154,6 @@ void ASGCharacter::ServerInteract_Implementation()
 	}
 }
 
-void ASGCharacter::ServerSwapWeapons_Implementation()
-{
-}
-
 void ASGCharacter::ServerAttack_Implementation()
 {
 	if(CombatComponent)
@@ -196,21 +188,30 @@ void ASGCharacter::ServerDrawSecondary_Implementation()
 	CombatComponent->DrawSecondaryWeapon();
 }
 
-void ASGCharacter::PlaySwapWeaponsMontage() const
-{
-	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-	if(AnimInstance && SwapWeaponsMontage)
-	{
-		AnimInstance->Montage_Play(SwapWeaponsMontage);
-	}
-}
-
 void ASGCharacter::MulticastPlayAttackMontage_Implementation(UAnimMontage* Montage)
 {
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 	if(AnimInstance && Montage)
 	{
 		AnimInstance->Montage_Play(Montage);
+	}
+}
+
+void ASGCharacter::MulticastPlayDraw1HSwordAndShieldMontage_Implementation()
+{
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if(AnimInstance && Draw1HSwordAndShieldMontage)
+	{
+		AnimInstance->Montage_Play(Draw1HSwordAndShieldMontage);
+	}
+}
+
+void ASGCharacter::MulticastPlaySheath1HSwordAndShieldMontage_Implementation()
+{
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if(AnimInstance && Draw1HSwordAndShieldMontage)
+	{
+		AnimInstance->Montage_Play(Sheath1HSwordAndShieldMontage);
 	}
 }
 

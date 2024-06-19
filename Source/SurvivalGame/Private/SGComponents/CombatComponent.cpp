@@ -99,7 +99,7 @@ void UCombatComponent::EquipShield(AWeapon* WeaponToEquip)
 	// If 1H sword is already drawn then draw shield
 	if(EquippedWeapon && EquippedWeapon->GetWeaponType() == EWeaponType::EWT_1HSword)
 	{
-		AttachActorToLeftHand(Shield);
+		AttachShieldToLeftHand(Shield);
 		bIsShieldDrawn = true;
 	}
 	else
@@ -113,31 +113,26 @@ void UCombatComponent::DrawPrimaryWeapon()
 	// Primary already drawn -> sheath it
 	if(PrimaryWeapon && EquippedWeapon && PrimaryWeapon == EquippedWeapon)
 	{
-		SheathCurrentWeapon();
+		// 1H Sword & Shield
+		if(EquippedWeapon->GetWeaponType() == EWeaponType::EWT_1HSword && Shield)
+		{
+			Character->MulticastPlaySheath1HSwordAndShieldMontage();
+		}
+		
 		return;
 	}
 	// Secondary already drawn -> sheath it
 	if(SecondaryWeapon && EquippedWeapon && SecondaryWeapon == EquippedWeapon)
 	{
-		SheathCurrentWeapon();
+		
 	}
 	// Draw primary weapon
 	if(PrimaryWeapon && !EquippedWeapon)
 	{
-		EquippedWeapon = PrimaryWeapon;
-
-		if(EquippedWeapon->GetWeaponType() == EWeaponType::EWT_1HSword)
+		// 1H Sword & Shield
+		if(PrimaryWeapon->GetWeaponType() == EWeaponType::EWT_1HSword && Shield)
 		{
-			AttachActorToRightHand(EquippedWeapon);
-			if(Shield)
-			{
-				AttachActorToLeftHand(Shield);
-				bIsShieldDrawn = true;
-			}
-		}
-		else
-		{
-			AttachActorToRightHand(EquippedWeapon);
+			Character->MulticastPlayDraw1HSwordAndShieldMontage();
 		}
 	}
 }
@@ -147,53 +142,21 @@ void UCombatComponent::DrawSecondaryWeapon()
 	// Secondary already drawn -> sheath it
 	if(SecondaryWeapon && EquippedWeapon && SecondaryWeapon == EquippedWeapon)
 	{
-		SheathCurrentWeapon();
+		
 		return;
 	}
 	// Primary already drawn -> sheath it
 	if(PrimaryWeapon && EquippedWeapon && PrimaryWeapon == EquippedWeapon)
 	{
-		SheathCurrentWeapon();
+		
 	}
 	// Draw Secondary weapon
 	if(SecondaryWeapon && !EquippedWeapon)
 	{
-		EquippedWeapon = SecondaryWeapon;
-
-		if(EquippedWeapon->GetWeaponType() == EWeaponType::EWT_1HSword)
+		if(PrimaryWeapon->GetWeaponType() == EWeaponType::EWT_1HSword && Shield)
 		{
-			AttachActorToRightHand(EquippedWeapon);
-			if(Shield)
-			{
-				AttachActorToLeftHand(Shield);
-				bIsShieldDrawn = true;
-			}
+			Character->MulticastPlayDraw1HSwordAndShieldMontage();
 		}
-		else
-		{
-			AttachActorToRightHand(EquippedWeapon);
-		}
-	}
-}
-
-void UCombatComponent::SheathCurrentWeapon()
-{
-	if(EquippedWeapon->GetWeaponType() == EWeaponType::EWT_1HSword)
-	{
-		Attach1HToSide(EquippedWeapon);
-		EquippedWeapon = nullptr;
-		if(Shield)
-		{
-			AttachShieldToBack(Shield);
-			bIsShieldDrawn = false;
-			bIsBlocking = false;
-			Character->GetCharacterMovement()->MaxWalkSpeed = BaseWalkSpeed;
-		}
-	}
-	else
-	{
-		Attach2HToBack(EquippedWeapon);
-		EquippedWeapon = nullptr;
 	}
 }
 
@@ -250,22 +213,6 @@ void UCombatComponent::Unblock()
 	}
 }
 
-void UCombatComponent::SwapWeapons()
-{
-	CombatState = ECombatState::ECS_SwappingWeapons;
-	if(Character)
-	{
-		Character->PlaySwapWeaponsMontage();
-	}
-	FTimerHandle SwapWeaponDelayTimer;
-	Character->GetWorldTimerManager().SetTimer(SwapWeaponDelayTimer, [this]()
-	{
-		AWeapon* TempWeapon = EquippedWeapon;
-		EquippedWeapon = SecondaryWeapon;
-		SecondaryWeapon = TempWeapon;
-	}, 0.5f, false);
-}
-
 void UCombatComponent::ResetCombo()
 {
 	AttackCombo = 0;
@@ -282,7 +229,6 @@ void UCombatComponent::OnRep_EquippedWeapon(const AWeapon* OldWeapon)
 	if(EquippedWeapon && Character)
 	{
 		EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
-		AttachActorToRightHand(EquippedWeapon);
 	}
 }
 
@@ -302,7 +248,7 @@ void UCombatComponent::OnRep_SecondaryWeapon(const AWeapon* OldWeapon)
 	}
 }
 
-void UCombatComponent::AttachActorToRightHand(AActor* ActorToAttach) const
+void UCombatComponent::Attach1HSwordToRightHand(AActor* ActorToAttach) const
 {
 	if(const USkeletalMeshSocket* HandSocket = Character->GetMesh()->GetSocketByName(FName("1HSwordRightHandSocket")))
 	{
@@ -310,7 +256,7 @@ void UCombatComponent::AttachActorToRightHand(AActor* ActorToAttach) const
 	}
 }
 
-void UCombatComponent::AttachActorToLeftHand(AActor* ActorToAttach) const
+void UCombatComponent::AttachShieldToLeftHand(AActor* ActorToAttach) const
 {
 	if(const USkeletalMeshSocket* HandSocket = Character->GetMesh()->GetSocketByName(FName("LeftHandSocket")))
 	{
@@ -342,21 +288,30 @@ void UCombatComponent::Attach1HToSide(AActor* ActorToAttach) const
 	}
 }
 
-void UCombatComponent::FinishSwapWeapons()
+void UCombatComponent::UnSheathAttach1HSwordAndShield()
 {
-	if(Character && Character->HasAuthority())
+	if(Character && Character->HasAuthority() && PrimaryWeapon && Shield)
 	{
-		CombatState = ECombatState::ECS_Unoccupied;
+		EquippedWeapon = PrimaryWeapon;
+		Attach1HSwordToRightHand(PrimaryWeapon);
+		AttachShieldToLeftHand(Shield);
+		bIsShieldDrawn = true;
 	}
 }
 
-void UCombatComponent::FinishSwapAttachWeapon()
+void UCombatComponent::SheathAttach1HSwordAndShield()
 {
-	EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
-	AttachActorToRightHand(EquippedWeapon);
-
-	SecondaryWeapon->SetWeaponState(EWeaponState::EWS_EquippedSecondary);
-	// TODO: Deal with attachments
+	if(Character && Character->HasAuthority() && EquippedWeapon && Shield)
+	{
+		Attach1HToSide(EquippedWeapon);
+		FTimerHandle SheathTimer;
+		GetWorld()->GetTimerManager().SetTimer(SheathTimer, [this]()
+		{
+			EquippedWeapon = nullptr;
+			AttachShieldToBack(Shield);
+			bIsShieldDrawn = false;
+		}, 0.5f, false);
+	}
 }
 
 void UCombatComponent::OnRep_CombatState()
@@ -373,14 +328,9 @@ void UCombatComponent::OnRep_CombatState()
 	case ECombatState::ECS_SwappingWeapons:
 		if(Character && !Character->IsLocallyControlled())
 		{
-			Character->PlaySwapWeaponsMontage();
+			
 		}
 		break;
 	}
-}
-
-bool UCombatComponent::ShouldSwapWeapons() const
-{
-	return (EquippedWeapon != nullptr && SecondaryWeapon != nullptr && CombatState != ECombatState::ECS_Attacking);
 }
 
