@@ -11,13 +11,11 @@
 ULockonComponent::ULockonComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
-
 }
 
 void ULockonComponent::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
 void ULockonComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -26,9 +24,7 @@ void ULockonComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 
 	if(LockonTarget && Character && Character->IsLocallyControlled())
 	{
-		FVector LockonTargetOffset = LockonTarget->GetActorLocation();
-		LockonTargetOffset.Z += 75.f;
-		const FRotator PlayerRot = UKismetMathLibrary::FindLookAtRotation(Character->GetActorLocation(),LockonTargetOffset);
+		const FRotator PlayerRot = UKismetMathLibrary::FindLookAtRotation(Character->GetActorLocation(),LockonTarget->GetActorLocation());
 		Character->GetController()->SetControlRotation(PlayerRot);
 	}
 }
