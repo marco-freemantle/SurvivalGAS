@@ -6,6 +6,7 @@
 #include "GameFramework/PlayerController.h"
 #include "SGPlayerController.generated.h"
 
+class ASGHUD;
 class ASGCharacter;
 class ASGGameMode;
 class ASGCharacter;
@@ -79,6 +80,9 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Input")
 	TObjectPtr<UInputAction> DrawSecondaryAction;
 
+	UPROPERTY(EditAnywhere, Category = "Input")
+	TObjectPtr<UInputAction> ToggleCharacterSheetAction;
+
 	void Move(const FInputActionValue& InputActionValue);
 	void LookUp(const FInputActionValue& InputActionValue);
 	void Turn(const FInputActionValue& InputActionValue);
@@ -94,14 +98,19 @@ private:
 	void Attack(const FInputActionValue& InputActionValue);
 	void Block(const FInputActionValue& InputActionValue);
 	void Unblock(const FInputActionValue& InputActionValue);
+	void ToggleCharacterSheet(const FInputActionValue& InputActionValue);
 	
 	void SetbCanEquipTrue();
 
 	bool bCanEquip = true;
+	bool bIsCharacterSheetOpen = false;
 
 	UPROPERTY()
 	ASGGameMode* SGGameMode;
 
 	UPROPERTY()
 	ASGCharacter* SGOwnerCharacter;
+	
+	UPROPERTY()
+	ASGHUD* SGHUD;
 };

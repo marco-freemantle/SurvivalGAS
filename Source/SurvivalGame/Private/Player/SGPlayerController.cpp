@@ -2,9 +2,11 @@
 
 #include "Player/SGPlayerController.h"
 #include "EnhancedInputSubsystems.h"
+#include "Blueprint/UserWidget.h"
 #include "Character/SGCharacter.h"
 #include "Game/SGGameUserSettings.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "HUD/SGHUD.h"
 #include "Input/SGInputComponent.h"
 #include "SGComponents/CombatComponent.h"
 #include "SGComponents/LockonComponent.h"
@@ -76,6 +78,7 @@ void ASGPlayerController::SetupInputComponent()
 	SGInputComponent->BindAction(SwitchLockonTargetRightAction, ETriggerEvent::Started, this, &ASGPlayerController::SwitchLockonTargetRight);
 	SGInputComponent->BindAction(DrawPrimaryAction, ETriggerEvent::Started, this, &ASGPlayerController::DrawPrimary);
 	SGInputComponent->BindAction(DrawSecondaryAction, ETriggerEvent::Started, this, &ASGPlayerController::DrawSecondary);
+	SGInputComponent->BindAction(ToggleCharacterSheetAction, ETriggerEvent::Started, this, &ASGPlayerController::ToggleCharacterSheet);
 }
 
 void ASGPlayerController::Move(const FInputActionValue& InputActionValue)
@@ -158,6 +161,25 @@ void ASGPlayerController::Unblock(const FInputActionValue& InputActionValue)
 	if (ASGCharacter* SGCharacter = Cast<ASGCharacter>(GetCharacter()))
 	{
 		SGCharacter->BlockButtonReleased();
+	}
+}
+
+void ASGPlayerController::ToggleCharacterSheet(const FInputActionValue& InputActionValue)
+{
+	SGHUD = SGHUD == nullptr ? Cast<ASGHUD>(GetHUD()) : SGHUD;
+
+	if (SGHUD && SGHUD->CharacterSheet)
+	{
+		bIsCharacterSheetOpen = !bIsCharacterSheetOpen;
+
+		if (bIsCharacterSheetOpen)
+		{
+			SGHUD->CharacterSheet->SetVisibility(ESlateVisibility::Visible);
+		}
+		else
+		{
+			SGHUD->CharacterSheet->SetVisibility(ESlateVisibility::Hidden);
+		}
 	}
 }
 
