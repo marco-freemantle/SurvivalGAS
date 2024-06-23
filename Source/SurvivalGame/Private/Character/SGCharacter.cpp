@@ -6,6 +6,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "SGComponents/CombatComponent.h"
+#include "SGComponents/InventoryComponent.h"
 #include "SGComponents/LockonComponent.h"
 #include "Weapon/Weapon.h"
 
@@ -32,6 +33,9 @@ ASGCharacter::ASGCharacter()
 	CombatComponent = CreateDefaultSubobject<UCombatComponent>(TEXT("CombatComponent"));
 	CombatComponent->SetIsReplicated(true);
 
+	InventoryComponent = CreateDefaultSubobject<UInventoryComponent>(TEXT("InventoryComponent"));
+	InventoryComponent->SetIsReplicated(true);
+
 	SpawnCollisionHandlingMethod = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 
 	NetUpdateFrequency = 66.f;
@@ -56,6 +60,10 @@ void ASGCharacter::PostInitializeComponents()
 	if(CombatComponent)
 	{
 		CombatComponent->Character = this;
+	}
+	if(InventoryComponent)
+	{
+		InventoryComponent->Character = this;
 	}
 }
 
@@ -148,10 +156,14 @@ void ASGCharacter::DrawSecondaryButtonPressed()
 
 void ASGCharacter::ServerInteract_Implementation()
 {
-	if(OverlappingWeapon && CombatComponent)
+	if(InventoryComponent)
 	{
-		CombatComponent->EquipWeapon(OverlappingWeapon);
+		InventoryComponent->ServerInteract(OverlappingWeapon);
 	}
+	// if(OverlappingWeapon && CombatComponent)
+	// {
+	// 	CombatComponent->EquipWeapon(OverlappingWeapon);
+	// }
 }
 
 void ASGCharacter::ServerAttack_Implementation()

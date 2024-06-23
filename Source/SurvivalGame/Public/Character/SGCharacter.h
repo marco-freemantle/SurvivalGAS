@@ -7,6 +7,7 @@
 #include "Interfaces/LockonInterface.h"
 #include "SGCharacter.generated.h"
 
+class UInventoryComponent;
 class ULockonComponent;
 class UCombatComponent;
 class ASGPlayerController;
@@ -64,6 +65,9 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	UCombatComponent* CombatComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	UInventoryComponent* InventoryComponent;
 	
 	UPROPERTY(EditAnywhere, Category=Combat)
 	UAnimMontage* Draw1HSwordAndShieldMontage;
@@ -95,5 +99,6 @@ private:
 public:
 	FORCEINLINE ULockonComponent* GetLockonComponent() const { return LockonComponent; }
 	FORCEINLINE UCombatComponent* GetCombatComponent() const { return CombatComponent; }
+	FORCEINLINE UInventoryComponent* GetInventoryComponent() const { return InventoryComponent; }
 	FORCEINLINE UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 };

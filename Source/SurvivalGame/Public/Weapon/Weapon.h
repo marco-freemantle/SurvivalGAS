@@ -7,6 +7,7 @@
 #include "SGTypes/WeaponTypes.h"
 #include "Weapon.generated.h"
 
+class UItemDataComponent;
 class UBoxComponent;
 class ASGPlayerController;
 class ASGCharacter;
@@ -64,6 +65,9 @@ private:
 	
 	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties")
 	USphereComponent* AreaSphere;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	UItemDataComponent* ItemDataComponent;
 
 	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties", ReplicatedUsing = OnRep_WeaponState)
 	EWeaponState WeaponState;

@@ -5,6 +5,7 @@
 #include "Components/SphereComponent.h"
 #include "Components/WidgetComponent.h"
 #include "Net/UnrealNetwork.h"
+#include "SGComponents/ItemDataComponent.h"
 
 AWeapon::AWeapon()
 {
@@ -24,6 +25,9 @@ AWeapon::AWeapon()
 
 	PickupWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("PickupWidget"));
 	PickupWidget->SetupAttachment(RootComponent);
+
+	ItemDataComponent = CreateDefaultSubobject<UItemDataComponent>(TEXT("ItemDataComponent"));
+	ItemDataComponent->SetIsReplicated(true);
 }
 
 void AWeapon::BeginPlay()
