@@ -16,6 +16,7 @@ class SURVIVALGAME_API UItemDataComponent : public UActorComponent, public IInte
 public:	
 	UItemDataComponent();
 
+	virtual void ShowPickupWidget(bool bShowWidget) override;
 	virtual void InteractWith(ASGCharacter* SGCharacter) override;
 
 protected:

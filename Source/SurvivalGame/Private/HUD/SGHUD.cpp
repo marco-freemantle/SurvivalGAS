@@ -1,8 +1,7 @@
 // Copyright Marco Freemantle
 
-
 #include "HUD/SGHUD.h"
-
+#include "SGComponents/InventoryComponent.h"
 #include "Blueprint/UserWidget.h"
 
 void ASGHUD::DrawHUD()
@@ -13,8 +12,6 @@ void ASGHUD::DrawHUD()
 void ASGHUD::BeginPlay()
 {
 	Super::BeginPlay();
-
-	AddCharacterSheet();
 }
 
 void ASGHUD::AddCharacterSheet()
@@ -24,6 +21,20 @@ void ASGHUD::AddCharacterSheet()
 	{
 		CharacterSheet = CreateWidget<UUserWidget>(PlayerController, CharacterSheetClass);
 		CharacterSheet->AddToViewport();
-		CharacterSheet->SetVisibility(ESlateVisibility::Hidden);
+		const FInputModeGameAndUI InputMode;
+		PlayerController->SetInputMode(InputMode);
+		PlayerController->SetShowMouseCursor(true);
+	}
+}
+
+void ASGHUD::RemoveCharacterSheet() const
+{
+	APlayerController* PlayerController = GetOwningPlayerController();
+	if(PlayerController && CharacterSheet)
+	{
+		CharacterSheet->RemoveFromParent();
+		const FInputModeGameOnly InputMode;
+		PlayerController->SetInputMode(InputMode);
+		PlayerController->SetShowMouseCursor(false);
 	}
 }

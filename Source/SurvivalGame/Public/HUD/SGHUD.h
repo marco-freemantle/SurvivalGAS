@@ -6,6 +6,7 @@
 #include "GameFramework/HUD.h"
 #include "SGHUD.generated.h"
 
+class UInventoryComponent;
 /**
  * 
  */
@@ -24,6 +25,10 @@ public:
 	UUserWidget* CharacterSheet;
 
 	void AddCharacterSheet();
+	void RemoveCharacterSheet() const;
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void ShowContainer(UInventoryComponent* ContainerInventory);
 
 protected:
 	virtual void BeginPlay() override;

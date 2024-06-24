@@ -27,6 +27,7 @@ public:
 	virtual void PostInitializeComponents() override;
 
 	void SetOverlappingWeapon(AWeapon* Weapon);
+	void SetOverlappingInteractable(AActor* Interactable);
 
 	void InteractButtonPressed();
 	void AttackButtonPressed();
@@ -57,6 +58,9 @@ private:
 	UPROPERTY(ReplicatedUsing = OnRep_OverlappingWeapon)
 	AWeapon* OverlappingWeapon;
 
+	UPROPERTY(ReplicatedUsing = OnRep_OverlappingInteractable)
+	AActor* OverlappingInteractable;
+
 	UPROPERTY()
 	ASGPlayerController* VBPlayerController;
 
@@ -77,6 +81,9 @@ private:
 
 	UFUNCTION()
 	void OnRep_OverlappingWeapon(AWeapon* LastWeapon);
+
+	UFUNCTION()
+	void OnRep_OverlappingInteractable(AActor* LastInteractable);
 
 	UFUNCTION(Server, Reliable)
 	void ServerInteract();

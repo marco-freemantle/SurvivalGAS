@@ -25,3 +25,7 @@ void UItemDataComponent::InteractWith(ASGCharacter* SGCharacter)
 	}
 }
 
+void UItemDataComponent::ShowPickupWidget(bool bShowWidget)
+{
+}
+

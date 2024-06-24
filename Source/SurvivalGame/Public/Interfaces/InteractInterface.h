@@ -24,4 +24,5 @@ class SURVIVALGAME_API IInteractInterface
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
 	virtual void InteractWith(ASGCharacter* SGCharacter) = 0;
+	virtual void ShowPickupWidget(bool bShowWidget) = 0;
 };

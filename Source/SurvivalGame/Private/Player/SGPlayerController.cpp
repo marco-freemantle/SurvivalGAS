@@ -14,7 +14,6 @@
 ASGPlayerController::ASGPlayerController()
 {
 	bReplicates = true;
-	
 }
 
 void ASGPlayerController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -25,7 +24,6 @@ void ASGPlayerController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 void ASGPlayerController::PlayerTick(float DeltaTime)
 {
 	Super::PlayerTick(DeltaTime);
-	
 }
 
 void ASGPlayerController::BeginPlay()
@@ -41,18 +39,13 @@ void ASGPlayerController::BeginPlay()
 
 	bShowMouseCursor = false;
 
-	FInputModeGameOnly InputModeData;
+	const FInputModeGameOnly InputModeData;
 	SetInputMode(InputModeData);
 }
 
 void ASGPlayerController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
-
-	if(ASGCharacter* SGCharacter = Cast<ASGCharacter>(InPawn))
-	{
-		
-	}
 }
 
 void ASGPlayerController::SetupInputComponent()
@@ -168,17 +161,17 @@ void ASGPlayerController::ToggleCharacterSheet(const FInputActionValue& InputAct
 {
 	SGHUD = SGHUD == nullptr ? Cast<ASGHUD>(GetHUD()) : SGHUD;
 
-	if (SGHUD && SGHUD->CharacterSheet)
+	if (SGHUD)
 	{
 		bIsCharacterSheetOpen = !bIsCharacterSheetOpen;
 
 		if (bIsCharacterSheetOpen)
 		{
-			SGHUD->CharacterSheet->SetVisibility(ESlateVisibility::Visible);
+			SGHUD->AddCharacterSheet();
 		}
 		else
 		{
-			SGHUD->CharacterSheet->SetVisibility(ESlateVisibility::Hidden);
+			SGHUD->RemoveCharacterSheet();
 		}
 	}
 }

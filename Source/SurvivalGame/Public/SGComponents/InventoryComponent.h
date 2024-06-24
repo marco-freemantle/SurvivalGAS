@@ -20,6 +20,8 @@ struct FSlotStruct
 	int32 Quantity = 0;
 };
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FInventoryUpdated);
+
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class SURVIVALGAME_API UInventoryComponent : public UActorComponent
 {
@@ -35,9 +37,19 @@ public:
 	void AddToStack(int32 Index);
 	int32 AnyEmptySlotsAvailable();
 	bool CreateNewStack(FName ItemID);
+	void TransferSlots(int32 SourceIndex, UInventoryComponent* SourceInventory, int32 DestinationIndex);
 
-	UPROPERTY(Replicated, BlueprintReadOnly)
+	UPROPERTY(Replicated, BlueprintReadOnly, EditAnywhere)
 	TArray<FSlotStruct> Content;
+
+	UPROPERTY(BlueprintAssignable, Replicated)
+	FInventoryUpdated OnInventoryUpdated;
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastUpdateInventory();
+
+	UFUNCTION(Server, Reliable, BlueprintCallable)
+	void ServerTransferSlots(int32 SourceIndex, UInventoryComponent* SourceInventory, int32 DestinationIndex);
 	
 protected:
 	virtual void BeginPlay() override;

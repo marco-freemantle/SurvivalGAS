@@ -20,6 +20,7 @@ void UInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(UInventoryComponent, Content);
+	DOREPLIFETIME(UInventoryComponent, OnInventoryUpdated);
 }
 
 void UInventoryComponent::BeginPlay()
@@ -33,11 +34,20 @@ void UInventoryComponent::ServerInteract_Implementation(AActor* Target)
 {
 	if(Target)
 	{
+		// Interacting with a pickup item
 		if (UItemDataComponent* ItemDataComponent = Cast<UItemDataComponent>(Target->GetComponentByClass(UItemDataComponent::StaticClass())))
 		{
 			if(ASGCharacter* SGCharacter = Cast<ASGCharacter>(GetOwner()))
 			{
 				ItemDataComponent->InteractWith(SGCharacter);
+			}
+		}
+		// Interacting with a generic interactable item
+		if (IInteractInterface* InteractInterface = Cast<IInteractInterface>(Target))
+		{
+			if (ASGCharacter* SGCharacter = Cast<ASGCharacter>(GetOwner()))
+			{
+				InteractInterface->InteractWith(SGCharacter);
 			}
 		}
 	}
@@ -139,6 +149,44 @@ bool UInventoryComponent::CreateNewStack(FName ItemID)
 		return true;
 	}
 	return false;
+}
+
+void UInventoryComponent::TransferSlots(int32 SourceIndex, UInventoryComponent* SourceInventory, int32 DestinationIndex)
+{
+	if(SourceInventory)
+	{
+		const FSlotStruct SlotContent = SourceInventory->Content[SourceIndex];
+
+		if(DestinationIndex < 0)
+		{
+			
+		}
+		else
+		{
+			if(Content[DestinationIndex].ItemID == SlotContent.ItemID)
+			{
+				
+			}
+			else
+			{
+				SourceInventory->Content[SourceIndex] = Content[DestinationIndex];
+				Content[DestinationIndex] = SlotContent;
+
+				MulticastUpdateInventory();
+				SourceInventory->MulticastUpdateInventory();
+			}
+		}
+	}
+}
+
+void UInventoryComponent::ServerTransferSlots_Implementation(int32 SourceIndex, UInventoryComponent* SourceInventory, int32 DestinationIndex)
+{
+	TransferSlots(SourceIndex, SourceInventory, DestinationIndex);
+}
+
+void UInventoryComponent::MulticastUpdateInventory_Implementation()
+{
+	OnInventoryUpdated.Broadcast();
 }
 
 

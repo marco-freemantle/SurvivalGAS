@@ -4,6 +4,7 @@
 #include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Interfaces/InteractInterface.h"
 #include "Net/UnrealNetwork.h"
 #include "SGComponents/CombatComponent.h"
 #include "SGComponents/InventoryComponent.h"
@@ -92,6 +93,27 @@ void ASGCharacter::SetOverlappingWeapon(AWeapon* Weapon)
 	}
 }
 
+void ASGCharacter::SetOverlappingInteractable(AActor* Interactable)
+{
+	if(OverlappingInteractable && IsLocallyControlled())
+	{
+		if(IInteractInterface* InteractInterface = Cast<IInteractInterface>(OverlappingInteractable))
+		{
+			InteractInterface->ShowPickupWidget(false);
+		}
+	}
+	
+	OverlappingInteractable = Interactable;
+	
+	if(IsLocallyControlled() && OverlappingInteractable)
+	{
+		if(IInteractInterface* InteractInterface = Cast<IInteractInterface>(OverlappingInteractable))
+		{
+			InteractInterface->ShowPickupWidget(true);
+		}
+	}
+}
+
 void ASGCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
 {
 	if(OverlappingWeapon)
@@ -102,6 +124,18 @@ void ASGCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
 	{
 		LastWeapon->ShowPickupWidget(false);
 	}
+}
+
+void ASGCharacter::OnRep_OverlappingInteractable(AActor* LastInteractable)
+{
+	// if(OverlappingInteractable)
+	// {
+	// 	OverlappingInteractable->ShowPickupWidget(true);
+	// }
+	// if(LastWeapon)
+	// {
+	// 	LastWeapon->ShowPickupWidget(false);
+	// }
 }
 
 void ASGCharacter::InteractButtonPressed()
@@ -156,9 +190,13 @@ void ASGCharacter::DrawSecondaryButtonPressed()
 
 void ASGCharacter::ServerInteract_Implementation()
 {
-	if(InventoryComponent)
+	if(InventoryComponent && OverlappingWeapon)
 	{
 		InventoryComponent->ServerInteract(OverlappingWeapon);
+	}
+	if(InventoryComponent && OverlappingInteractable)
+	{
+		InventoryComponent->ServerInteract(OverlappingInteractable);
 	}
 	// if(OverlappingWeapon && CombatComponent)
 	// {
