@@ -48,6 +48,7 @@ void ASGCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME_CONDITION(ASGCharacter, OverlappingWeapon, COND_OwnerOnly);
+	DOREPLIFETIME_CONDITION(ASGCharacter, OverlappingInteractable, COND_OwnerOnly);
 }
 
 void ASGCharacter::PostInitializeComponents()
@@ -128,14 +129,20 @@ void ASGCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
 
 void ASGCharacter::OnRep_OverlappingInteractable(AActor* LastInteractable)
 {
-	// if(OverlappingInteractable)
-	// {
-	// 	OverlappingInteractable->ShowPickupWidget(true);
-	// }
-	// if(LastWeapon)
-	// {
-	// 	LastWeapon->ShowPickupWidget(false);
-	// }
+	if(OverlappingInteractable)
+	{
+		if(IInteractInterface* InteractInterface = Cast<IInteractInterface>(OverlappingInteractable))
+		{
+			InteractInterface->ShowPickupWidget(true);
+		}
+	}
+	if(LastInteractable)
+	{
+		if(IInteractInterface* InteractInterface = Cast<IInteractInterface>(LastInteractable))
+		{
+			InteractInterface->ShowPickupWidget(false);
+		}
+	}
 }
 
 void ASGCharacter::InteractButtonPressed()

@@ -11,8 +11,6 @@
 UInventoryComponent::UInventoryComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
-
-	Content.SetNum(InventorySize);
 }
 
 void UInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -20,7 +18,6 @@ void UInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(UInventoryComponent, Content);
-	DOREPLIFETIME(UInventoryComponent, OnInventoryUpdated);
 }
 
 void UInventoryComponent::BeginPlay()
@@ -47,7 +44,9 @@ void UInventoryComponent::ServerInteract_Implementation(AActor* Target)
 		{
 			if (ASGCharacter* SGCharacter = Cast<ASGCharacter>(GetOwner()))
 			{
-				InteractInterface->InteractWith(SGCharacter);
+				Target->SetOwner(SGCharacter->GetController());
+
+				ClientOnLocalInteract(Target, SGCharacter);
 			}
 		}
 	}
@@ -151,6 +150,7 @@ bool UInventoryComponent::CreateNewStack(FName ItemID)
 	return false;
 }
 
+// Only called if dropping items between different container
 void UInventoryComponent::TransferSlots(int32 SourceIndex, UInventoryComponent* SourceInventory, int32 DestinationIndex)
 {
 	if(SourceInventory)
@@ -163,9 +163,24 @@ void UInventoryComponent::TransferSlots(int32 SourceIndex, UInventoryComponent* 
 		}
 		else
 		{
+			// GEngine->AddOnScreenDebugMessage(INDEX_NONE, 5.f, FColor::Red, FString("Here"));
+			// Items are the same type -> try stack
 			if(Content[DestinationIndex].ItemID == SlotContent.ItemID)
 			{
-				
+				int32 RemainingItems = FMath::Clamp((Content[DestinationIndex].Quantity + SlotContent.Quantity) - GetMaxStackSize(SlotContent.ItemID), 0, GetMaxStackSize(SlotContent.ItemID));
+				if(RemainingItems > 0)
+				{
+					FSlotStruct NewSlotStruct;
+					NewSlotStruct.ItemID = SlotContent.ItemID;
+					NewSlotStruct.Quantity = RemainingItems;
+					SourceInventory->Content[SourceIndex] = NewSlotStruct;
+
+					NewSlotStruct.Quantity = FMath::Clamp(Content[DestinationIndex].Quantity + SlotContent.Quantity, 0, GetMaxStackSize(SlotContent.ItemID));
+					Content[DestinationIndex] = NewSlotStruct;
+					
+					MulticastUpdateInventory();
+					SourceInventory->MulticastUpdateInventory();
+				}
 			}
 			else
 			{
@@ -175,6 +190,17 @@ void UInventoryComponent::TransferSlots(int32 SourceIndex, UInventoryComponent* 
 				MulticastUpdateInventory();
 				SourceInventory->MulticastUpdateInventory();
 			}
+		}
+	}
+}
+
+void UInventoryComponent::ClientOnLocalInteract_Implementation(AActor* TargetActor, AActor* Interactor)
+{
+	if(IInteractInterface* InteractInterface = Cast<IInteractInterface>(TargetActor))
+	{
+		if(ASGCharacter* InteractingSGCharacter = Cast<ASGCharacter>(Interactor))
+		{
+			InteractInterface->InteractWith(InteractingSGCharacter);
 		}
 	}
 }

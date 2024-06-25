@@ -13,10 +13,10 @@ struct FSlotStruct
 {
 	GENERATED_BODY()
 	
-	UPROPERTY(BlueprintReadWrite, Category = "Inventory")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
 	FName ItemID;
 
-	UPROPERTY(BlueprintReadWrite, Category = "Inventory")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory")
 	int32 Quantity = 0;
 };
 
@@ -39,10 +39,13 @@ public:
 	bool CreateNewStack(FName ItemID);
 	void TransferSlots(int32 SourceIndex, UInventoryComponent* SourceInventory, int32 DestinationIndex);
 
+	UFUNCTION(Client, Reliable)
+	void ClientOnLocalInteract(AActor* TargetActor, AActor* Interactor);
+
 	UPROPERTY(Replicated, BlueprintReadOnly, EditAnywhere)
 	TArray<FSlotStruct> Content;
 
-	UPROPERTY(BlueprintAssignable, Replicated)
+	UPROPERTY(BlueprintAssignable)
 	FInventoryUpdated OnInventoryUpdated;
 
 	UFUNCTION(NetMulticast, Reliable)
