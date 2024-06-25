@@ -21,6 +21,7 @@ void UItemDataComponent::InteractWith(ASGCharacter* SGCharacter)
 	if(SGCharacter && SGCharacter->GetInventoryComponent())
 	{
 		SGCharacter->GetInventoryComponent()->AddToInventory(ItemID.RowName, Quantity);
+		SGCharacter->ClientPlayPickupSound();
 		GetOwner()->Destroy();
 	}
 }

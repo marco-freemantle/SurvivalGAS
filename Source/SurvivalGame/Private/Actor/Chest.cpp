@@ -66,6 +66,7 @@ void AChest::OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor
 	if(ASGCharacter* SGCharacter = Cast<ASGCharacter>(OtherActor))
 	{
 		SGCharacter->SetOverlappingInteractable(nullptr);
+		SGCharacter->ClientHideContainerWidget(InventoryComponent);
 	}
 }
 
@@ -83,7 +84,7 @@ void AChest::InteractWith(ASGCharacter* SGCharacter)
 	{
 		if(ASGHUD* SGHUD = Cast<ASGHUD>(SGController->GetHUD()))
 		{
-			SGHUD->ShowContainer(InventoryComponent);
+			SGHUD->ToggleShowContainer(InventoryComponent);
 		}
 	}
 }

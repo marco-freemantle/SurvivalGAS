@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "SGTypes/ItemStruct.h"
 #include "InventoryComponent.generated.h"
 
 class ASGCharacter;
@@ -38,6 +39,15 @@ public:
 	int32 AnyEmptySlotsAvailable();
 	bool CreateNewStack(FName ItemID);
 	void TransferSlots(int32 SourceIndex, UInventoryComponent* SourceInventory, int32 DestinationIndex);
+	FItemStruct GetItemData(FName ItemID) const;
+
+	void RemoveFromInventory(int32 Index, bool bRemoveWholeStack, bool bIsConsumed);
+	
+	UFUNCTION(Server, Reliable, BlueprintCallable)
+	void ServerRemove(int32 Index, bool bRemoveWholeStack, bool bIsConsumed);
+
+	UFUNCTION(Server, Reliable)
+	void ServerDropItem(FName ItemID, int32 Quantity);
 
 	UFUNCTION(Client, Reliable)
 	void ClientOnLocalInteract(AActor* TargetActor, AActor* Interactor);
@@ -69,4 +79,6 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	UDataTable* DataTable;
+
+	FVector GetDropLocation() const;
 };

@@ -1,8 +1,8 @@
 // Copyright Marco Freemantle
 
 #include "HUD/SGHUD.h"
-#include "SGComponents/InventoryComponent.h"
 #include "Blueprint/UserWidget.h"
+#include "Player/SGPlayerController.h"
 
 void ASGHUD::DrawHUD()
 {
@@ -16,25 +16,29 @@ void ASGHUD::BeginPlay()
 
 void ASGHUD::AddCharacterSheet()
 {
-	APlayerController* PlayerController = GetOwningPlayerController();
-	if(PlayerController && CharacterSheetClass)
+	ASGPlayerController* PlayerController = Cast<ASGPlayerController>(GetOwningPlayerController());
+	if(PlayerController && CharacterSheetClass && !bIsContainerOpen)
 	{
 		CharacterSheet = CreateWidget<UUserWidget>(PlayerController, CharacterSheetClass);
 		CharacterSheet->AddToViewport();
 		const FInputModeGameAndUI InputMode;
 		PlayerController->SetInputMode(InputMode);
 		PlayerController->SetShowMouseCursor(true);
+		PlayerController->SetIsCharacterSheetOpen(true);
+		PlayerController->PlayOpenInventorySound();
 	}
 }
 
 void ASGHUD::RemoveCharacterSheet() const
 {
-	APlayerController* PlayerController = GetOwningPlayerController();
+	ASGPlayerController* PlayerController = Cast<ASGPlayerController>(GetOwningPlayerController());
 	if(PlayerController && CharacterSheet)
 	{
 		CharacterSheet->RemoveFromParent();
 		const FInputModeGameOnly InputMode;
 		PlayerController->SetInputMode(InputMode);
 		PlayerController->SetShowMouseCursor(false);
+		PlayerController->SetIsCharacterSheetOpen(false);
+		PlayerController->PlayCloseInventorySound();
 	}
 }

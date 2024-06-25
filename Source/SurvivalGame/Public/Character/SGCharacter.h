@@ -45,6 +45,12 @@ public:
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastPlaySheath1HSwordAndShieldMontage();
 
+	UFUNCTION(Client, Reliable)
+	void ClientHideContainerWidget(UInventoryComponent* ContainerInventoryComponent) const;
+
+	UFUNCTION(Client, Unreliable)
+	void ClientPlayPickupSound();
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -102,6 +108,9 @@ private:
 
 	UFUNCTION(Server, Reliable)
 	void ServerDrawSecondary();
+
+	UPROPERTY(EditAnywhere, Category=Audio)
+	USoundBase* PickupSound;
 
 public:
 	FORCEINLINE ULockonComponent* GetLockonComponent() const { return LockonComponent; }

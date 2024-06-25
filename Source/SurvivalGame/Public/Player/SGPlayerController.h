@@ -30,6 +30,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void PauseGame(const FInputActionValue& InputActionValue);
 
+	void PlayOpenInventorySound();
+	void PlayCloseInventorySound();
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void SetupInputComponent() override;
@@ -113,4 +116,13 @@ private:
 	
 	UPROPERTY()
 	ASGHUD* SGHUD;
+
+	UPROPERTY(EditAnywhere, Category=Audio)
+	USoundBase* OpenInventorySound;
+
+	UPROPERTY(EditAnywhere, Category=Audio)
+	USoundBase* CloseInventorySound;
+
+public:
+	FORCEINLINE void SetIsCharacterSheetOpen(const bool bIsOpen) { bIsCharacterSheetOpen = bIsOpen; }
 };

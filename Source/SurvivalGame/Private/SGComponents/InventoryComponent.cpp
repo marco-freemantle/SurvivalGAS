@@ -4,6 +4,7 @@
 #include "SGComponents/InventoryComponent.h"
 
 #include "Character/SGCharacter.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "Net/UnrealNetwork.h"
 #include "SGTypes/ItemStruct.h"
 #include "SGComponents/ItemDataComponent.h"
@@ -40,14 +41,11 @@ void UInventoryComponent::ServerInteract_Implementation(AActor* Target)
 			}
 		}
 		// Interacting with a generic interactable item
-		if (IInteractInterface* InteractInterface = Cast<IInteractInterface>(Target))
+		if (ASGCharacter* SGCharacter = Cast<ASGCharacter>(GetOwner()))
 		{
-			if (ASGCharacter* SGCharacter = Cast<ASGCharacter>(GetOwner()))
-			{
-				Target->SetOwner(SGCharacter->GetController());
+			Target->SetOwner(SGCharacter->GetController());
 
-				ClientOnLocalInteract(Target, SGCharacter);
-			}
+			ClientOnLocalInteract(Target, SGCharacter);
 		}
 	}
 }
@@ -83,6 +81,7 @@ void UInventoryComponent::AddToInventory(FName ItemID, int32 Quantity)
 			}
 		}
 	}
+	MulticastUpdateInventory();
 }
 
 int32 UInventoryComponent::FindSlot(FName ItemID)
@@ -138,8 +137,7 @@ int32 UInventoryComponent::AnyEmptySlotsAvailable()
 
 bool UInventoryComponent::CreateNewStack(FName ItemID)
 {
-	int32 AvailableIndex = AnyEmptySlotsAvailable();
-	if(AvailableIndex >= 0)
+	if(int32 AvailableIndex = AnyEmptySlotsAvailable(); AvailableIndex >= 0)
 	{
 		FSlotStruct NewSlotStruct;
 		NewSlotStruct.ItemID = ItemID;
@@ -163,11 +161,11 @@ void UInventoryComponent::TransferSlots(int32 SourceIndex, UInventoryComponent* 
 		}
 		else
 		{
-			// GEngine->AddOnScreenDebugMessage(INDEX_NONE, 5.f, FColor::Red, FString("Here"));
 			// Items are the same type -> try stack
 			if(Content[DestinationIndex].ItemID == SlotContent.ItemID)
 			{
 				int32 RemainingItems = FMath::Clamp((Content[DestinationIndex].Quantity + SlotContent.Quantity) - GetMaxStackSize(SlotContent.ItemID), 0, GetMaxStackSize(SlotContent.ItemID));
+				// Items remaining after stack
 				if(RemainingItems > 0)
 				{
 					FSlotStruct NewSlotStruct;
@@ -181,7 +179,21 @@ void UInventoryComponent::TransferSlots(int32 SourceIndex, UInventoryComponent* 
 					MulticastUpdateInventory();
 					SourceInventory->MulticastUpdateInventory();
 				}
+				// No items remaining after stack
+				else
+				{
+					const FSlotStruct NewSourceSlotStruct;
+					SourceInventory->Content[SourceIndex] = NewSourceSlotStruct;
+
+					FSlotStruct NewDestinationSlotStruct = Content[DestinationIndex];
+					NewDestinationSlotStruct.Quantity = FMath::Clamp(Content[DestinationIndex].Quantity + SlotContent.Quantity, 0, GetMaxStackSize(SlotContent.ItemID));
+					Content[DestinationIndex] = NewDestinationSlotStruct;
+					
+					MulticastUpdateInventory();
+					SourceInventory->MulticastUpdateInventory();
+				}
 			}
+			// Items are not the same type
 			else
 			{
 				SourceInventory->Content[SourceIndex] = Content[DestinationIndex];
@@ -192,6 +204,71 @@ void UInventoryComponent::TransferSlots(int32 SourceIndex, UInventoryComponent* 
 			}
 		}
 	}
+}
+
+void UInventoryComponent::RemoveFromInventory(int32 Index, bool bRemoveWholeStack, bool bIsConsumed)
+{
+	FName Item = Content[Index].ItemID;
+	int32 Quantity = Content[Index].Quantity;
+	
+	if(bRemoveWholeStack || Quantity == 1)
+	{
+		const FSlotStruct EmptyStruct;
+		Content[Index] = EmptyStruct;
+		if(bIsConsumed)
+		{
+			// TODO: 
+		}
+		else
+		{
+			ServerDropItem(Item, Quantity);
+		}
+	}
+	else
+	{
+		Content[Index].Quantity -= 1;
+		if(bIsConsumed)
+		{
+			// TODO:
+		}
+		else
+		{
+			ServerDropItem(Item, 1);
+		}
+	}
+	MulticastUpdateInventory();
+}
+
+void UInventoryComponent::ServerDropItem_Implementation(FName ItemID, int32 Quantity)
+{
+	for (int32 i = 0; i < Quantity; ++i)
+	{
+		FItemStruct ItemToSpawn = GetItemData(ItemID);
+		if(ItemToSpawn.ItemClass)
+		{
+			FActorSpawnParameters SpawnParameters;
+			GetWorld()->SpawnActor<AActor>(ItemToSpawn.ItemClass, GetDropLocation(), FRotator(), SpawnParameters);
+		}
+	}
+}
+
+void UInventoryComponent::ServerRemove_Implementation(int32 Index, bool bRemoveWholeStack, bool bIsConsumed)
+{
+	RemoveFromInventory(Index, bRemoveWholeStack, bIsConsumed);
+}
+
+FItemStruct UInventoryComponent::GetItemData(FName ItemID) const
+{
+	if(DataTable)
+	{
+		static const FString ContextString(TEXT("Item Data Context"));
+		if(const FItemStruct* ItemData = DataTable->FindRow<FItemStruct>(ItemID, ContextString, true))
+		{
+			return *ItemData;
+		}
+		return FItemStruct();
+	}
+	return FItemStruct();
 }
 
 void UInventoryComponent::ClientOnLocalInteract_Implementation(AActor* TargetActor, AActor* Interactor)
@@ -213,6 +290,26 @@ void UInventoryComponent::ServerTransferSlots_Implementation(int32 SourceIndex, 
 void UInventoryComponent::MulticastUpdateInventory_Implementation()
 {
 	OnInventoryUpdated.Broadcast();
+}
+
+FVector UInventoryComponent::GetDropLocation() const
+{
+	FHitResult OutResult;
+	
+	const FVector OwnerLocation = GetOwner()->GetActorLocation();
+	constexpr float RandomRadius = 50.0f;
+	const FVector RandomOffset = UKismetMathLibrary::RandomUnitVector() * FMath::RandRange(0.f, RandomRadius);
+	const FVector StartLocation = OwnerLocation + FVector(0.f, 0.f, 50.f) + RandomOffset;
+	const FVector EndLocation = StartLocation - FVector(0.f, 0.f, 500.f);
+
+	GetWorld()->LineTraceSingleByChannel(OutResult, StartLocation, EndLocation, ECC_Visibility);
+
+	if (OutResult.bBlockingHit)
+	{
+		return OutResult.Location;
+	}
+	
+	return OwnerLocation + RandomOffset;
 }
 
 

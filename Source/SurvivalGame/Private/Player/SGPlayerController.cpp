@@ -8,6 +8,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "HUD/SGHUD.h"
 #include "Input/SGInputComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "SGComponents/CombatComponent.h"
 #include "SGComponents/LockonComponent.h"
 
@@ -163,9 +164,7 @@ void ASGPlayerController::ToggleCharacterSheet(const FInputActionValue& InputAct
 
 	if (SGHUD)
 	{
-		bIsCharacterSheetOpen = !bIsCharacterSheetOpen;
-
-		if (bIsCharacterSheetOpen)
+		if (!bIsCharacterSheetOpen)
 		{
 			SGHUD->AddCharacterSheet();
 		}
@@ -249,6 +248,22 @@ void ASGPlayerController::SwitchLockonTargetRight(const FInputActionValue& Input
 void ASGPlayerController::PauseGame(const FInputActionValue& InputActionValue)
 {
 	
+}
+
+void ASGPlayerController::PlayOpenInventorySound()
+{
+	if(OpenInventorySound)
+	{
+		UGameplayStatics::PlaySound2D(this, OpenInventorySound);
+	}
+}
+
+void ASGPlayerController::PlayCloseInventorySound()
+{
+	if(CloseInventorySound)
+	{
+		UGameplayStatics::PlaySound2D(this, CloseInventorySound);
+	}
 }
 
 void ASGPlayerController::SetbCanEquipTrue()

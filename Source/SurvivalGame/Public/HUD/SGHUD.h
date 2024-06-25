@@ -25,10 +25,18 @@ public:
 	UUserWidget* CharacterSheet;
 
 	void AddCharacterSheet();
+
+	UFUNCTION(BlueprintCallable)
 	void RemoveCharacterSheet() const;
 
 	UFUNCTION(BlueprintImplementableEvent)
-	void ShowContainer(UInventoryComponent* ContainerInventory);
+	void ToggleShowContainer(UInventoryComponent* ContainerInventory);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void HideContainer();
+
+	UPROPERTY(BlueprintReadWrite)
+	bool bIsContainerOpen = false;
 
 protected:
 	virtual void BeginPlay() override;

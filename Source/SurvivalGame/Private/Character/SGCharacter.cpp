@@ -4,7 +4,9 @@
 #include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "HUD/SGHUD.h"
 #include "Interfaces/InteractInterface.h"
+#include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 #include "SGComponents/CombatComponent.h"
 #include "SGComponents/InventoryComponent.h"
@@ -269,6 +271,26 @@ void ASGCharacter::MulticastPlaySheath1HSwordAndShieldMontage_Implementation()
 	if(AnimInstance && Draw1HSwordAndShieldMontage)
 	{
 		AnimInstance->Montage_Play(Sheath1HSwordAndShieldMontage);
+	}
+}
+
+void ASGCharacter::ClientHideContainerWidget_Implementation(UInventoryComponent* ContainerInventoryComponent) const
+{
+	if(GetWorld() && GetWorld()->GetFirstPlayerController() && GetWorld()->GetFirstPlayerController()->GetHUD())
+	{
+		ASGHUD* SGHUD = Cast<ASGHUD>(GetWorld()->GetFirstPlayerController()->GetHUD());
+		if(SGHUD && SGHUD->bIsContainerOpen)
+		{
+			SGHUD->ToggleShowContainer(InventoryComponent);
+		}
+	}
+}
+
+void ASGCharacter::ClientPlayPickupSound_Implementation()
+{
+	if(PickupSound)
+	{
+		UGameplayStatics::PlaySound2D(this, PickupSound);
 	}
 }
 
