@@ -19,6 +19,9 @@ void UInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(UInventoryComponent, Content);
+	DOREPLIFETIME(UInventoryComponent, MainWeaponSlot);
+	DOREPLIFETIME(UInventoryComponent, SecondaryWeaponSlot);
+	DOREPLIFETIME(UInventoryComponent, ShieldSlot);
 }
 
 void UInventoryComponent::BeginPlay()
@@ -148,7 +151,7 @@ bool UInventoryComponent::CreateNewStack(FName ItemID)
 	return false;
 }
 
-// Only called if dropping items between different container
+// Only called if dropping items between different slots
 void UInventoryComponent::TransferSlots(int32 SourceIndex, UInventoryComponent* SourceInventory, int32 DestinationIndex)
 {
 	if(SourceInventory)
@@ -202,6 +205,35 @@ void UInventoryComponent::TransferSlots(int32 SourceIndex, UInventoryComponent* 
 				MulticastUpdateInventory();
 				SourceInventory->MulticastUpdateInventory();
 			}
+		}
+	}
+}
+
+// Only called if dropping items between different slots
+void UInventoryComponent::TransferEquippableSlots(int32 SourceIndex, UInventoryComponent* SourceInventory, EItemType ItemType)
+{
+	if(SourceInventory)
+	{
+		const FSlotStruct SlotContent = SourceInventory->Content[SourceIndex];
+		switch (ItemType)
+		{
+		case EItemType::EIT_Weapon:
+			SourceInventory->Content[SourceIndex] = MainWeaponSlot;
+			MainWeaponSlot = SlotContent;
+
+			MulticastUpdateInventory();
+			SourceInventory->MulticastUpdateInventory();
+			break;
+		case EItemType::EIT_Shield:
+			SourceInventory->Content[SourceIndex] = ShieldSlot;
+			ShieldSlot = SlotContent;
+
+			MulticastUpdateInventory();
+			SourceInventory->MulticastUpdateInventory();
+			break;
+		case EItemType::EIT_Unequippable:
+			
+			break;
 		}
 	}
 }
@@ -285,6 +317,12 @@ void UInventoryComponent::ClientOnLocalInteract_Implementation(AActor* TargetAct
 void UInventoryComponent::ServerTransferSlots_Implementation(int32 SourceIndex, UInventoryComponent* SourceInventory, int32 DestinationIndex)
 {
 	TransferSlots(SourceIndex, SourceInventory, DestinationIndex);
+}
+
+void UInventoryComponent::ServerTransferEquippableSlots_Implementation(int32 SourceIndex,
+	UInventoryComponent* SourceInventory, EItemType ItemType)
+{
+	TransferEquippableSlots(SourceIndex, SourceInventory, ItemType);
 }
 
 void UInventoryComponent::MulticastUpdateInventory_Implementation()

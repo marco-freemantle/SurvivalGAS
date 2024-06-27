@@ -39,6 +39,7 @@ public:
 	int32 AnyEmptySlotsAvailable();
 	bool CreateNewStack(FName ItemID);
 	void TransferSlots(int32 SourceIndex, UInventoryComponent* SourceInventory, int32 DestinationIndex);
+	void TransferEquippableSlots(int32 SourceIndex, UInventoryComponent* SourceInventory, EItemType ItemType);
 	FItemStruct GetItemData(FName ItemID) const;
 
 	void RemoveFromInventory(int32 Index, bool bRemoveWholeStack, bool bIsConsumed);
@@ -55,6 +56,15 @@ public:
 	UPROPERTY(Replicated, BlueprintReadOnly, EditAnywhere)
 	TArray<FSlotStruct> Content;
 
+	UPROPERTY(Replicated, BlueprintReadOnly, EditAnywhere)
+	FSlotStruct MainWeaponSlot;
+
+	UPROPERTY(Replicated, BlueprintReadOnly, EditAnywhere)
+	FSlotStruct SecondaryWeaponSlot;
+
+	UPROPERTY(Replicated, BlueprintReadOnly, EditAnywhere)
+	FSlotStruct ShieldSlot;
+
 	UPROPERTY(BlueprintAssignable)
 	FInventoryUpdated OnInventoryUpdated;
 
@@ -63,6 +73,9 @@ public:
 
 	UFUNCTION(Server, Reliable, BlueprintCallable)
 	void ServerTransferSlots(int32 SourceIndex, UInventoryComponent* SourceInventory, int32 DestinationIndex);
+
+	UFUNCTION(Server, Reliable, BlueprintCallable)
+	void ServerTransferEquippableSlots(int32 SourceIndex, UInventoryComponent* SourceInventory, EItemType ItemType);
 	
 protected:
 	virtual void BeginPlay() override;
@@ -75,7 +88,7 @@ private:
 	UPROPERTY()
 	ASGCharacter* Character;
 	
-	int32 InventorySize = 25;
+	int32 InventorySize = 30;
 
 	UPROPERTY(EditAnywhere)
 	UDataTable* DataTable;
