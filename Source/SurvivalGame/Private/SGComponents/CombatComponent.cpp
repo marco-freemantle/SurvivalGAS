@@ -80,7 +80,7 @@ void UCombatComponent::EquipSecondaryWeapon(AWeapon* WeaponToEquip)
 	SecondaryWeapon->SetOwner(Character);
 	if(SecondaryWeapon->GetWeaponType() == EWeaponType::EWT_1HSword)
 	{
-		Attach1HToSide(SecondaryWeapon);
+		Attach1HToBack(SecondaryWeapon);
 	}
 	else
 	{
@@ -143,6 +143,7 @@ void UCombatComponent::DrawSecondaryWeapon()
 	if(SecondaryWeapon && EquippedWeapon && SecondaryWeapon == EquippedWeapon)
 	{
 		
+		
 		return;
 	}
 	// Primary already drawn -> sheath it
@@ -153,7 +154,7 @@ void UCombatComponent::DrawSecondaryWeapon()
 	// Draw Secondary weapon
 	if(SecondaryWeapon && !EquippedWeapon)
 	{
-		if(PrimaryWeapon->GetWeaponType() == EWeaponType::EWT_1HSword && Shield)
+		if(SecondaryWeapon->GetWeaponType() == EWeaponType::EWT_1HSword && Shield)
 		{
 			Character->MulticastPlayDraw1HSwordAndShieldMontage();
 		}
@@ -283,6 +284,14 @@ void UCombatComponent::Attach2HToBack(AActor* ActorToAttach) const
 void UCombatComponent::Attach1HToSide(AActor* ActorToAttach) const
 {
 	if(const USkeletalMeshSocket* HandSocket = Character->GetMesh()->GetSocketByName(FName("1HSideSocket")))
+	{
+		HandSocket->AttachActor(ActorToAttach, Character->GetMesh());
+	}
+}
+
+void UCombatComponent::Attach1HToBack(AActor* ActorToAttach) const
+{
+	if(const USkeletalMeshSocket* HandSocket = Character->GetMesh()->GetSocketByName(FName("1HBackSocket")))
 	{
 		HandSocket->AttachActor(ActorToAttach, Character->GetMesh());
 	}

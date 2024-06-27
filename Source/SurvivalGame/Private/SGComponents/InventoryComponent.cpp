@@ -284,6 +284,7 @@ void UInventoryComponent::TransferEquippableSlots(int32 SourceIndex, int32 Desti
 		}
 		MulticastUpdateInventory();
 		SourceInventory->MulticastUpdateInventory();
+		if(Character) Character->TryEquipWeapons(PrimaryWeaponSlot, SecondaryWeaponSlot, ShieldSlot);
 	}
 }
 

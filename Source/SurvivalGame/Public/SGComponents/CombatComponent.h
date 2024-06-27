@@ -38,6 +38,7 @@ public:
 	void AttachShieldToBack(AActor* ActorToAttach) const;
 	void Attach2HToBack(AActor* ActorToAttach) const;
 	void Attach1HToSide(AActor* ActorToAttach) const;
+	void Attach1HToBack(AActor* ActorToAttach) const;
 
 	// Called from anim notify
 	UFUNCTION(BlueprintCallable)

@@ -207,10 +207,64 @@ void ASGCharacter::ServerInteract_Implementation()
 	{
 		InventoryComponent->ServerInteract(OverlappingInteractable);
 	}
-	// if(OverlappingWeapon && CombatComponent)
-	// {
-	// 	CombatComponent->EquipWeapon(OverlappingWeapon);
-	// }
+}
+
+void ASGCharacter::TryEquipWeapons(FSlotStruct PrimaryWeaponSlot, FSlotStruct SecondaryWeaponSlot, FSlotStruct ShieldSlot) const
+{
+    if(!InventoryComponent || !InventoryComponent->DataTable || !CombatComponent) return;
+    
+    static const FString ContextString(TEXT("Item Data Context"));
+    
+    auto EquipWeapon = [&](const FSlotStruct Slot, AWeapon*& WeaponSlot, const bool isPrimary = false, const bool isShield = false)
+    {
+        if(const FItemStruct* ItemData = InventoryComponent->DataTable->FindRow<FItemStruct>(Slot.ItemID, ContextString, true))
+        {
+            if((isShield && ItemData->ItemType == EItemType::EIT_Shield) || (!isShield && ItemData->ItemType == EItemType::EIT_Weapon))
+            {
+                if(WeaponSlot) WeaponSlot->Destroy();
+                const FActorSpawnParameters SpawnParameters;
+                if(AActor* SpawnedActor = GetWorld()->SpawnActor<AActor>(ItemData->ItemClass, FTransform(), SpawnParameters))
+                {
+                    if(AWeapon* WeaponCast = Cast<AWeapon>(SpawnedActor))
+                    {
+                        WeaponSlot = WeaponCast;
+                        if(isPrimary)
+                        {
+                            CombatComponent->EquipPrimaryWeapon(WeaponCast);
+                        }
+                        else if(isShield)
+                        {
+                            CombatComponent->EquipShield(WeaponCast);
+                        }
+                        else
+                        {
+                            CombatComponent->EquipSecondaryWeapon(WeaponCast);
+                        }
+                        return;
+                    }
+                    SpawnedActor->Destroy();
+                }
+            }
+        }
+        if(WeaponSlot)
+        {
+            if(isPrimary && CombatComponent->EquippedWeapon == WeaponSlot)
+            {
+                CombatComponent->EquippedWeapon = nullptr;
+                CombatComponent->bIsShieldDrawn = false;
+            }
+            WeaponSlot->Destroy();
+            WeaponSlot = nullptr;
+        }
+        if(isShield)
+        {
+            CombatComponent->bIsShieldDrawn = false;
+        }
+    };
+    
+    EquipWeapon(PrimaryWeaponSlot, CombatComponent->PrimaryWeapon, true);
+    EquipWeapon(SecondaryWeaponSlot, CombatComponent->SecondaryWeapon);
+    EquipWeapon(ShieldSlot, CombatComponent->Shield, false, true);
 }
 
 void ASGCharacter::ServerAttack_Implementation()

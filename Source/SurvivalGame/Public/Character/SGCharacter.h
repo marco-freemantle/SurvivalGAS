@@ -7,6 +7,7 @@
 #include "Interfaces/LockonInterface.h"
 #include "SGCharacter.generated.h"
 
+struct FSlotStruct;
 class UInventoryComponent;
 class ULockonComponent;
 class UCombatComponent;
@@ -35,6 +36,8 @@ public:
 	void BlockButtonReleased();
 	void DrawPrimaryButtonPressed();
 	void DrawSecondaryButtonPressed();
+
+	void TryEquipWeapons(FSlotStruct PrimaryWeaponSlot, FSlotStruct SecondaryWeaponSlot, FSlotStruct ShieldSlot) const;
 
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastPlayAttackMontage(UAnimMontage* Montage);
