@@ -19,7 +19,7 @@ void UInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(UInventoryComponent, Content);
-	DOREPLIFETIME(UInventoryComponent, MainWeaponSlot);
+	DOREPLIFETIME(UInventoryComponent, PrimaryWeaponSlot);
 	DOREPLIFETIME(UInventoryComponent, SecondaryWeaponSlot);
 	DOREPLIFETIME(UInventoryComponent, ShieldSlot);
 }
@@ -210,31 +210,80 @@ void UInventoryComponent::TransferSlots(int32 SourceIndex, UInventoryComponent* 
 }
 
 // Only called if dropping items between different slots
-void UInventoryComponent::TransferEquippableSlots(int32 SourceIndex, UInventoryComponent* SourceInventory, EItemType ItemType)
+void UInventoryComponent::TransferEquippableSlots(int32 SourceIndex, int32 DestinationIndex, UInventoryComponent* SourceInventory, EItemType ItemType, FName SlotType, FName ComingFromSlotType)
 {
 	if(SourceInventory)
 	{
 		const FSlotStruct SlotContent = SourceInventory->Content[SourceIndex];
+		
 		switch (ItemType)
 		{
 		case EItemType::EIT_Weapon:
-			SourceInventory->Content[SourceIndex] = MainWeaponSlot;
-			MainWeaponSlot = SlotContent;
-
-			MulticastUpdateInventory();
-			SourceInventory->MulticastUpdateInventory();
+			if (SlotType == FName("Primary"))
+			{
+				if(ComingFromSlotType == FName("None"))
+				{
+					SourceInventory->Content[SourceIndex] = PrimaryWeaponSlot;
+					PrimaryWeaponSlot = SlotContent;
+				}
+				else
+				{
+					FSlotStruct TempSlot = PrimaryWeaponSlot;
+					PrimaryWeaponSlot = SecondaryWeaponSlot;
+					SecondaryWeaponSlot = TempSlot;
+				}
+			}
+			if (SlotType == FName("Secondary"))
+			{
+				if(ComingFromSlotType == FName("None"))
+				{
+					SourceInventory->Content[SourceIndex] = SecondaryWeaponSlot;
+					SecondaryWeaponSlot = SlotContent;
+				}
+				else
+				{
+					FSlotStruct TempSlot = SecondaryWeaponSlot;
+					SecondaryWeaponSlot = PrimaryWeaponSlot;
+					PrimaryWeaponSlot = TempSlot;
+				}
+			}
+			if (SlotType == FName("None"))
+			{
+				if(ComingFromSlotType == FName("Primary"))
+				{
+					FSlotStruct TempSlot = SourceInventory->Content[DestinationIndex];
+					SourceInventory->Content[DestinationIndex] = PrimaryWeaponSlot;
+					PrimaryWeaponSlot = TempSlot;
+				}
+				if(ComingFromSlotType == FName("Secondary"))
+				{
+					FSlotStruct TempSlot = SourceInventory->Content[DestinationIndex];
+					SourceInventory->Content[DestinationIndex] = SecondaryWeaponSlot;
+					SecondaryWeaponSlot = TempSlot;
+				}
+			}
 			break;
 		case EItemType::EIT_Shield:
-			SourceInventory->Content[SourceIndex] = ShieldSlot;
-			ShieldSlot = SlotContent;
-
-			MulticastUpdateInventory();
-			SourceInventory->MulticastUpdateInventory();
-			break;
+			if (SlotType == FName("Shield"))
+			{
+				if(ComingFromSlotType == FName("None"))
+				{
+					SourceInventory->Content[SourceIndex] = ShieldSlot;
+					ShieldSlot = SlotContent;
+				}
+			}
+			if (SlotType == FName("None"))
+			{
+				FSlotStruct TempSlot = SourceInventory->Content[DestinationIndex];
+				SourceInventory->Content[DestinationIndex] = ShieldSlot;
+				ShieldSlot = TempSlot;
+			}
 		case EItemType::EIT_Unequippable:
 			
 			break;
 		}
+		MulticastUpdateInventory();
+		SourceInventory->MulticastUpdateInventory();
 	}
 }
 
@@ -319,10 +368,10 @@ void UInventoryComponent::ServerTransferSlots_Implementation(int32 SourceIndex, 
 	TransferSlots(SourceIndex, SourceInventory, DestinationIndex);
 }
 
-void UInventoryComponent::ServerTransferEquippableSlots_Implementation(int32 SourceIndex,
-	UInventoryComponent* SourceInventory, EItemType ItemType)
+void UInventoryComponent::ServerTransferEquippableSlots_Implementation(int32 SourceIndex, int32 DestinationIndex,
+	UInventoryComponent* SourceInventory, EItemType ItemType, FName SlotType, FName ComingFromSlotType)
 {
-	TransferEquippableSlots(SourceIndex, SourceInventory, ItemType);
+	TransferEquippableSlots(SourceIndex, DestinationIndex, SourceInventory, ItemType, SlotType, ComingFromSlotType);
 }
 
 void UInventoryComponent::MulticastUpdateInventory_Implementation()

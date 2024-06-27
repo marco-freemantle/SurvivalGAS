@@ -39,7 +39,7 @@ public:
 	int32 AnyEmptySlotsAvailable();
 	bool CreateNewStack(FName ItemID);
 	void TransferSlots(int32 SourceIndex, UInventoryComponent* SourceInventory, int32 DestinationIndex);
-	void TransferEquippableSlots(int32 SourceIndex, UInventoryComponent* SourceInventory, EItemType ItemType);
+	void TransferEquippableSlots(int32 SourceIndex, int32 DestinationIndex, UInventoryComponent* SourceInventory, EItemType ItemType, FName SlotType, FName ComingFromSlotType);
 	FItemStruct GetItemData(FName ItemID) const;
 
 	void RemoveFromInventory(int32 Index, bool bRemoveWholeStack, bool bIsConsumed);
@@ -57,7 +57,7 @@ public:
 	TArray<FSlotStruct> Content;
 
 	UPROPERTY(Replicated, BlueprintReadOnly, EditAnywhere)
-	FSlotStruct MainWeaponSlot;
+	FSlotStruct PrimaryWeaponSlot;
 
 	UPROPERTY(Replicated, BlueprintReadOnly, EditAnywhere)
 	FSlotStruct SecondaryWeaponSlot;
@@ -75,7 +75,7 @@ public:
 	void ServerTransferSlots(int32 SourceIndex, UInventoryComponent* SourceInventory, int32 DestinationIndex);
 
 	UFUNCTION(Server, Reliable, BlueprintCallable)
-	void ServerTransferEquippableSlots(int32 SourceIndex, UInventoryComponent* SourceInventory, EItemType ItemType);
+	void ServerTransferEquippableSlots(int32 SourceIndex, int32 DestinationIndex, UInventoryComponent* SourceInventory, EItemType ItemType, FName SlotType, FName ComingFromSlotType);
 	
 protected:
 	virtual void BeginPlay() override;
