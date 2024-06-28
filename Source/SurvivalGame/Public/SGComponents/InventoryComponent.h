@@ -36,13 +36,15 @@ public:
 	int32 FindSlot(FName ItemID);
 	int32 GetMaxStackSize(FName ItemID) const;
 	void AddToStack(int32 Index);
-	int32 AnyEmptySlotsAvailable();
 	bool CreateNewStack(FName ItemID);
 	void TransferSlots(int32 SourceIndex, UInventoryComponent* SourceInventory, int32 DestinationIndex);
 	void TransferEquippableSlots(int32 SourceIndex, int32 DestinationIndex, UInventoryComponent* SourceInventory, EItemType ItemType, FName SlotType, FName ComingFromSlotType);
 	FItemStruct GetItemData(FName ItemID) const;
 
 	void RemoveFromInventory(int32 Index, bool bRemoveWholeStack, bool bIsConsumed);
+
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	int32 AnyEmptySlotsAvailable();
 	
 	UFUNCTION(Server, Reliable, BlueprintCallable)
 	void ServerRemove(int32 Index, bool bRemoveWholeStack, bool bIsConsumed);
