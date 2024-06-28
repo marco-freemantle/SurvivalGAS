@@ -20,7 +20,6 @@ void UInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 
 	DOREPLIFETIME(UInventoryComponent, Content);
 	DOREPLIFETIME(UInventoryComponent, PrimaryWeaponSlot);
-	DOREPLIFETIME(UInventoryComponent, SecondaryWeaponSlot);
 	DOREPLIFETIME(UInventoryComponent, ShieldSlot);
 }
 
@@ -158,55 +157,49 @@ void UInventoryComponent::TransferSlots(int32 SourceIndex, UInventoryComponent* 
 	{
 		const FSlotStruct SlotContent = SourceInventory->Content[SourceIndex];
 
-		if(DestinationIndex < 0)
+		// Items are the same type -> try stack
+		if(Content[DestinationIndex].ItemID == SlotContent.ItemID)
 		{
-			
-		}
-		else
-		{
-			// Items are the same type -> try stack
-			if(Content[DestinationIndex].ItemID == SlotContent.ItemID)
+			int32 RemainingItems = FMath::Clamp((Content[DestinationIndex].Quantity + SlotContent.Quantity) - GetMaxStackSize(SlotContent.ItemID), 0, GetMaxStackSize(SlotContent.ItemID));
+			// Items remaining after stack
+			if(RemainingItems > 0)
 			{
-				int32 RemainingItems = FMath::Clamp((Content[DestinationIndex].Quantity + SlotContent.Quantity) - GetMaxStackSize(SlotContent.ItemID), 0, GetMaxStackSize(SlotContent.ItemID));
-				// Items remaining after stack
-				if(RemainingItems > 0)
-				{
-					FSlotStruct NewSlotStruct;
-					NewSlotStruct.ItemID = SlotContent.ItemID;
-					NewSlotStruct.Quantity = RemainingItems;
-					SourceInventory->Content[SourceIndex] = NewSlotStruct;
+				FSlotStruct NewSlotStruct;
+				NewSlotStruct.ItemID = SlotContent.ItemID;
+				NewSlotStruct.Quantity = RemainingItems;
+				SourceInventory->Content[SourceIndex] = NewSlotStruct;
 
-					NewSlotStruct.Quantity = FMath::Clamp(Content[DestinationIndex].Quantity + SlotContent.Quantity, 0, GetMaxStackSize(SlotContent.ItemID));
-					Content[DestinationIndex] = NewSlotStruct;
-					
-					MulticastUpdateInventory();
-					SourceInventory->MulticastUpdateInventory();
-				}
-				// No items remaining after stack
-				else
-				{
-					const FSlotStruct NewSourceSlotStruct;
-					SourceInventory->Content[SourceIndex] = NewSourceSlotStruct;
-
-					FSlotStruct NewDestinationSlotStruct = Content[DestinationIndex];
-					NewDestinationSlotStruct.Quantity = FMath::Clamp(Content[DestinationIndex].Quantity + SlotContent.Quantity, 0, GetMaxStackSize(SlotContent.ItemID));
-					Content[DestinationIndex] = NewDestinationSlotStruct;
-					
-					MulticastUpdateInventory();
-					SourceInventory->MulticastUpdateInventory();
-				}
+				NewSlotStruct.Quantity = FMath::Clamp(Content[DestinationIndex].Quantity + SlotContent.Quantity, 0, GetMaxStackSize(SlotContent.ItemID));
+				Content[DestinationIndex] = NewSlotStruct;
+				
+				MulticastUpdateInventory();
+				SourceInventory->MulticastUpdateInventory();
 			}
-			// Items are not the same type
+			// No items remaining after stack
 			else
 			{
-				SourceInventory->Content[SourceIndex] = Content[DestinationIndex];
-				Content[DestinationIndex] = SlotContent;
+				const FSlotStruct NewSourceSlotStruct;
+				SourceInventory->Content[SourceIndex] = NewSourceSlotStruct;
 
+				FSlotStruct NewDestinationSlotStruct = Content[DestinationIndex];
+				NewDestinationSlotStruct.Quantity = FMath::Clamp(Content[DestinationIndex].Quantity + SlotContent.Quantity, 0, GetMaxStackSize(SlotContent.ItemID));
+				Content[DestinationIndex] = NewDestinationSlotStruct;
+				
 				MulticastUpdateInventory();
 				SourceInventory->MulticastUpdateInventory();
 			}
 		}
+		// Items are not the same type
+		else
+		{
+			SourceInventory->Content[SourceIndex] = Content[DestinationIndex];
+			Content[DestinationIndex] = SlotContent;
+
+			MulticastUpdateInventory();
+			SourceInventory->MulticastUpdateInventory();
+		}
 	}
+	if(Character) Character->TryEquipWeapons(PrimaryWeaponSlot, ShieldSlot);
 }
 
 // Only called if dropping items between different slots
@@ -219,47 +212,21 @@ void UInventoryComponent::TransferEquippableSlots(int32 SourceIndex, int32 Desti
 		switch (ItemType)
 		{
 		case EItemType::EIT_Weapon:
-			if (SlotType == FName("Primary"))
+			if (SlotType == FName("Weapon"))
 			{
 				if(ComingFromSlotType == FName("None"))
 				{
 					SourceInventory->Content[SourceIndex] = PrimaryWeaponSlot;
 					PrimaryWeaponSlot = SlotContent;
 				}
-				else
-				{
-					FSlotStruct TempSlot = PrimaryWeaponSlot;
-					PrimaryWeaponSlot = SecondaryWeaponSlot;
-					SecondaryWeaponSlot = TempSlot;
-				}
-			}
-			if (SlotType == FName("Secondary"))
-			{
-				if(ComingFromSlotType == FName("None"))
-				{
-					SourceInventory->Content[SourceIndex] = SecondaryWeaponSlot;
-					SecondaryWeaponSlot = SlotContent;
-				}
-				else
-				{
-					FSlotStruct TempSlot = SecondaryWeaponSlot;
-					SecondaryWeaponSlot = PrimaryWeaponSlot;
-					PrimaryWeaponSlot = TempSlot;
-				}
 			}
 			if (SlotType == FName("None"))
 			{
-				if(ComingFromSlotType == FName("Primary"))
+				if(ComingFromSlotType == FName("Weapon"))
 				{
 					FSlotStruct TempSlot = SourceInventory->Content[DestinationIndex];
 					SourceInventory->Content[DestinationIndex] = PrimaryWeaponSlot;
 					PrimaryWeaponSlot = TempSlot;
-				}
-				if(ComingFromSlotType == FName("Secondary"))
-				{
-					FSlotStruct TempSlot = SourceInventory->Content[DestinationIndex];
-					SourceInventory->Content[DestinationIndex] = SecondaryWeaponSlot;
-					SecondaryWeaponSlot = TempSlot;
 				}
 			}
 			break;
@@ -284,7 +251,7 @@ void UInventoryComponent::TransferEquippableSlots(int32 SourceIndex, int32 Desti
 		}
 		MulticastUpdateInventory();
 		SourceInventory->MulticastUpdateInventory();
-		if(Character) Character->TryEquipWeapons(PrimaryWeaponSlot, SecondaryWeaponSlot, ShieldSlot);
+		if(Character) Character->TryEquipWeapons(PrimaryWeaponSlot, ShieldSlot);
 	}
 }
 
@@ -329,7 +296,7 @@ void UInventoryComponent::ServerDropItem_Implementation(FName ItemID, int32 Quan
 		if(ItemToSpawn.ItemClass)
 		{
 			FActorSpawnParameters SpawnParameters;
-			GetWorld()->SpawnActor<AActor>(ItemToSpawn.ItemClass, GetDropLocation(), FRotator(), SpawnParameters);
+			GetWorld()->SpawnActor<AActor>(ItemToSpawn.ItemClass, GetDropLocation(), FRotator(180.f, 180.f, 90.f), SpawnParameters);
 		}
 	}
 }
@@ -394,6 +361,7 @@ FVector UInventoryComponent::GetDropLocation() const
 
 	if (OutResult.bBlockingHit)
 	{
+		OutResult.Location.Z += 5.f;
 		return OutResult.Location;
 	}
 	

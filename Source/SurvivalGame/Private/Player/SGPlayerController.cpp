@@ -71,7 +71,6 @@ void ASGPlayerController::SetupInputComponent()
 	SGInputComponent->BindAction(SwitchLockonTargetLeftAction, ETriggerEvent::Started, this, &ASGPlayerController::SwitchLockonTargetLeft);
 	SGInputComponent->BindAction(SwitchLockonTargetRightAction, ETriggerEvent::Started, this, &ASGPlayerController::SwitchLockonTargetRight);
 	SGInputComponent->BindAction(DrawPrimaryAction, ETriggerEvent::Started, this, &ASGPlayerController::DrawPrimary);
-	SGInputComponent->BindAction(DrawSecondaryAction, ETriggerEvent::Started, this, &ASGPlayerController::DrawSecondary);
 	SGInputComponent->BindAction(ToggleCharacterSheetAction, ETriggerEvent::Started, this, &ASGPlayerController::ToggleCharacterSheet);
 }
 
@@ -197,14 +196,6 @@ void ASGPlayerController::DrawPrimary(const FInputActionValue& InputActionValue)
 	if (ASGCharacter* SGCharacter = Cast<ASGCharacter>(GetCharacter()))
 	{
 		SGCharacter->DrawPrimaryButtonPressed();
-	}
-}
-
-void ASGPlayerController::DrawSecondary(const FInputActionValue& InputActionValue)
-{
-	if (ASGCharacter* SGCharacter = Cast<ASGCharacter>(GetCharacter()))
-	{
-		SGCharacter->DrawSecondaryButtonPressed();
 	}
 }
 

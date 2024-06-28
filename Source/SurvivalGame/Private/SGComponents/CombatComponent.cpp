@@ -30,29 +30,10 @@ void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 
 	DOREPLIFETIME(UCombatComponent, EquippedWeapon);
 	DOREPLIFETIME(UCombatComponent, PrimaryWeapon);
-	DOREPLIFETIME(UCombatComponent, SecondaryWeapon);
 	DOREPLIFETIME(UCombatComponent, Shield);
 	DOREPLIFETIME(UCombatComponent, CombatState);
 	DOREPLIFETIME(UCombatComponent, bIsBlocking);
 	DOREPLIFETIME(UCombatComponent, bIsShieldDrawn);
-}
-
-void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
-{
-	if(Character == nullptr || WeaponToEquip == nullptr) return;
-
-	if(WeaponToEquip->GetWeaponType() == EWeaponType::EWT_Shield && !Shield)
-	{
-		EquipShield(WeaponToEquip);
-	}
-	else if(PrimaryWeapon != nullptr && SecondaryWeapon == nullptr)
-	{
-		EquipSecondaryWeapon(WeaponToEquip);
-	}
-	else if(PrimaryWeapon == nullptr && SecondaryWeapon == nullptr)
-	{
-		EquipPrimaryWeapon(WeaponToEquip);
-	}
 }
 
 void UCombatComponent::EquipPrimaryWeapon(AWeapon* WeaponToEquip)
@@ -70,22 +51,8 @@ void UCombatComponent::EquipPrimaryWeapon(AWeapon* WeaponToEquip)
 	{
 		Attach2HToBack(PrimaryWeapon);
 	}
-}
-
-void UCombatComponent::EquipSecondaryWeapon(AWeapon* WeaponToEquip)
-{
-	if (WeaponToEquip == nullptr) return;
-	SecondaryWeapon = WeaponToEquip;
-	SecondaryWeapon->SetWeaponState(EWeaponState::EWS_EquippedSecondary);
-	SecondaryWeapon->SetOwner(Character);
-	if(SecondaryWeapon->GetWeaponType() == EWeaponType::EWT_1HSword)
-	{
-		Attach1HToBack(SecondaryWeapon);
-	}
-	else
-	{
-		Attach2HToBack(SecondaryWeapon);
-	}
+	EquippedWeapon = nullptr;
+	bIsShieldDrawn = false;
 }
 
 void UCombatComponent::EquipShield(AWeapon* WeaponToEquip)
@@ -121,40 +88,11 @@ void UCombatComponent::DrawPrimaryWeapon()
 		
 		return;
 	}
-	// Secondary already drawn -> sheath it
-	if(SecondaryWeapon && EquippedWeapon && SecondaryWeapon == EquippedWeapon)
-	{
-		
-	}
 	// Draw primary weapon
 	if(PrimaryWeapon && !EquippedWeapon)
 	{
 		// 1H Sword & Shield
 		if(PrimaryWeapon->GetWeaponType() == EWeaponType::EWT_1HSword && Shield)
-		{
-			Character->MulticastPlayDraw1HSwordAndShieldMontage();
-		}
-	}
-}
-
-void UCombatComponent::DrawSecondaryWeapon()
-{
-	// Secondary already drawn -> sheath it
-	if(SecondaryWeapon && EquippedWeapon && SecondaryWeapon == EquippedWeapon)
-	{
-		
-		
-		return;
-	}
-	// Primary already drawn -> sheath it
-	if(PrimaryWeapon && EquippedWeapon && PrimaryWeapon == EquippedWeapon)
-	{
-		
-	}
-	// Draw Secondary weapon
-	if(SecondaryWeapon && !EquippedWeapon)
-	{
-		if(SecondaryWeapon->GetWeaponType() == EWeaponType::EWT_1HSword && Shield)
 		{
 			Character->MulticastPlayDraw1HSwordAndShieldMontage();
 		}
@@ -238,14 +176,6 @@ void UCombatComponent::OnRep_PrimaryWeapon(const AWeapon* OldWeapon)
 	if(PrimaryWeapon && Character)
 	{
 		PrimaryWeapon->SetWeaponState(EWeaponState::EWS_EquippedPrimary);
-	}
-}
-
-void UCombatComponent::OnRep_SecondaryWeapon(const AWeapon* OldWeapon)
-{
-	if(SecondaryWeapon && Character)
-	{
-		SecondaryWeapon->SetWeaponState(EWeaponState::EWS_EquippedSecondary);
 	}
 }
 

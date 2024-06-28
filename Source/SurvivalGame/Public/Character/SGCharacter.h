@@ -35,9 +35,8 @@ public:
 	void BlockButtonPressed();
 	void BlockButtonReleased();
 	void DrawPrimaryButtonPressed();
-	void DrawSecondaryButtonPressed();
-
-	void TryEquipWeapons(FSlotStruct PrimaryWeaponSlot, FSlotStruct SecondaryWeaponSlot, FSlotStruct ShieldSlot) const;
+	
+	void TryEquipWeapons(FSlotStruct PrimaryWeaponSlot, FSlotStruct ShieldSlot) const;
 
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastPlayAttackMontage(UAnimMontage* Montage);
@@ -108,9 +107,6 @@ private:
 
 	UFUNCTION(Server, Reliable)
 	void ServerDrawPrimary();
-
-	UFUNCTION(Server, Reliable)
-	void ServerDrawSecondary();
 
 	UPROPERTY(EditAnywhere, Category=Audio)
 	USoundBase* PickupSound;

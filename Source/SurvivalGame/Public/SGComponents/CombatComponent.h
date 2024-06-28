@@ -21,14 +21,12 @@ public:
 	friend class ASGCharacter;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-
-	void EquipWeapon(AWeapon* WeaponToEquip);
+	
 	void Attack();
 	void Block();
 	void Unblock();
 
 	void DrawPrimaryWeapon();
-	void DrawSecondaryWeapon();
 
 	UPROPERTY(Replicated)
 	bool bIsShieldDrawn = false;
@@ -53,9 +51,6 @@ public:
 	UPROPERTY(ReplicatedUsing = OnRep_PrimaryWeapon, BlueprintReadOnly)
 	AWeapon* PrimaryWeapon;
 
-	UPROPERTY(ReplicatedUsing = OnRep_SecondaryWeapon, BlueprintReadOnly)
-	AWeapon* SecondaryWeapon;
-
 	UPROPERTY(Replicated, BlueprintReadOnly)
 	AWeapon* Shield;
 
@@ -71,11 +66,7 @@ protected:
 	UFUNCTION()
 	void OnRep_PrimaryWeapon(const AWeapon* OldWeapon);
 
-	UFUNCTION()
-	void OnRep_SecondaryWeapon(const AWeapon* OldWeapon);
-
 	void EquipPrimaryWeapon(AWeapon* WeaponToEquip);
-	void EquipSecondaryWeapon(AWeapon* WeaponToEquip);
 	void EquipShield(AWeapon* WeaponToEquip);
 
 private:

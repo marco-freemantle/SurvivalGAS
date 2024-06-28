@@ -188,15 +188,6 @@ void ASGCharacter::DrawPrimaryButtonPressed()
 	ServerDrawPrimary();
 }
 
-void ASGCharacter::DrawSecondaryButtonPressed()
-{
-	if(!HasAuthority())
-	{
-		CombatComponent->DrawSecondaryWeapon();
-	}
-	ServerDrawSecondary();
-}
-
 void ASGCharacter::ServerInteract_Implementation()
 {
 	if(InventoryComponent && OverlappingWeapon)
@@ -209,7 +200,7 @@ void ASGCharacter::ServerInteract_Implementation()
 	}
 }
 
-void ASGCharacter::TryEquipWeapons(FSlotStruct PrimaryWeaponSlot, FSlotStruct SecondaryWeaponSlot, FSlotStruct ShieldSlot) const
+void ASGCharacter::TryEquipWeapons(FSlotStruct PrimaryWeaponSlot, FSlotStruct ShieldSlot) const
 {
     if(!InventoryComponent || !InventoryComponent->DataTable || !CombatComponent) return;
     
@@ -236,10 +227,6 @@ void ASGCharacter::TryEquipWeapons(FSlotStruct PrimaryWeaponSlot, FSlotStruct Se
                         {
                             CombatComponent->EquipShield(WeaponCast);
                         }
-                        else
-                        {
-                            CombatComponent->EquipSecondaryWeapon(WeaponCast);
-                        }
                         return;
                     }
                     SpawnedActor->Destroy();
@@ -263,7 +250,6 @@ void ASGCharacter::TryEquipWeapons(FSlotStruct PrimaryWeaponSlot, FSlotStruct Se
     };
     
     EquipWeapon(PrimaryWeaponSlot, CombatComponent->PrimaryWeapon, true);
-    EquipWeapon(SecondaryWeaponSlot, CombatComponent->SecondaryWeapon);
     EquipWeapon(ShieldSlot, CombatComponent->Shield, false, true);
 }
 
@@ -294,11 +280,6 @@ void ASGCharacter::ServerUnblock_Implementation()
 void ASGCharacter::ServerDrawPrimary_Implementation()
 {
 	CombatComponent->DrawPrimaryWeapon();
-}
-
-void ASGCharacter::ServerDrawSecondary_Implementation()
-{
-	CombatComponent->DrawSecondaryWeapon();
 }
 
 void ASGCharacter::MulticastPlayAttackMontage_Implementation(UAnimMontage* Montage)

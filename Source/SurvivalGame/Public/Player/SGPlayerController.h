@@ -81,9 +81,6 @@ private:
 	TObjectPtr<UInputAction> DrawPrimaryAction;
 
 	UPROPERTY(EditAnywhere, Category = "Input")
-	TObjectPtr<UInputAction> DrawSecondaryAction;
-
-	UPROPERTY(EditAnywhere, Category = "Input")
 	TObjectPtr<UInputAction> ToggleCharacterSheetAction;
 
 	void Move(const FInputActionValue& InputActionValue);
@@ -94,7 +91,6 @@ private:
 	void Crouch(const FInputActionValue& InputActionValue);
 	void UnCrouch(const FInputActionValue& InputActionValue);
 	void DrawPrimary(const FInputActionValue& InputActionValue);
-	void DrawSecondary(const FInputActionValue& InputActionValue);
 	void Lockon(const FInputActionValue& InputActionValue);
 	void SwitchLockonTargetLeft(const FInputActionValue& InputActionValue);
 	void SwitchLockonTargetRight(const FInputActionValue& InputActionValue);

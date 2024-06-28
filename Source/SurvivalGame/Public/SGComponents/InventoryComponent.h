@@ -60,9 +60,6 @@ public:
 	FSlotStruct PrimaryWeaponSlot;
 
 	UPROPERTY(Replicated, BlueprintReadOnly, EditAnywhere)
-	FSlotStruct SecondaryWeaponSlot;
-
-	UPROPERTY(Replicated, BlueprintReadOnly, EditAnywhere)
 	FSlotStruct ShieldSlot;
 
 	UPROPERTY(BlueprintAssignable)
