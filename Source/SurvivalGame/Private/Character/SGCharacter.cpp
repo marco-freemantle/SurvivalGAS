@@ -28,7 +28,7 @@ ASGCharacter::ASGCharacter()
 
 	bUseControllerRotationYaw = false;
 	GetCharacterMovement()->bOrientRotationToMovement = true;
-	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
+	GetCharacterMovement()->NavAgentProps.bCanCrouch = false;
 
 	LockonComponent = CreateDefaultSubobject<ULockonComponent>(TEXT("LockonComponent"));
 	LockonComponent->SetIsReplicated(true);
@@ -188,6 +188,20 @@ void ASGCharacter::DrawPrimaryButtonPressed()
 	ServerDrawPrimary();
 }
 
+void ASGCharacter::RollButtonPressed(const FName& Direction)
+{
+	if(CombatComponent->CombatState != ECombatState::ECS_Unoccupied && !HasAuthority())
+	{
+		CombatComponent->Roll(Direction);
+	}
+	ServerRoll(Direction);
+}
+
+void ASGCharacter::DodgeButtonPressed(const FName& Direction)
+{
+	ServerDodge(Direction);
+}
+
 void ASGCharacter::ServerInteract_Implementation()
 {
 	if(InventoryComponent && OverlappingWeapon)
@@ -279,13 +293,29 @@ void ASGCharacter::ServerUnblock_Implementation()
 
 void ASGCharacter::ServerDrawPrimary_Implementation()
 {
-	CombatComponent->DrawPrimaryWeapon();
+	if(CombatComponent)
+	{
+		CombatComponent->DrawPrimaryWeapon();
+	}
 }
+
+void ASGCharacter::ServerRoll_Implementation(const FName& Direction)
+{
+	if(CombatComponent)
+	{
+		CombatComponent->Roll(Direction);
+	}}
+
+void ASGCharacter::ServerDodge_Implementation(const FName& Direction)
+{
+	if(CombatComponent)
+	{
+		CombatComponent->Dodge(Direction);
+	}}
 
 void ASGCharacter::MulticastPlayAttackMontage_Implementation(UAnimMontage* Montage)
 {
-	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-	if(AnimInstance && Montage)
+	if(UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance(); AnimInstance && Montage)
 	{
 		AnimInstance->Montage_Play(Montage);
 	}
@@ -293,8 +323,7 @@ void ASGCharacter::MulticastPlayAttackMontage_Implementation(UAnimMontage* Monta
 
 void ASGCharacter::MulticastPlayDraw1HSwordAndShieldMontage_Implementation()
 {
-	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-	if(AnimInstance && Draw1HSwordAndShieldMontage)
+	if(UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance(); AnimInstance && Draw1HSwordAndShieldMontage)
 	{
 		AnimInstance->Montage_Play(Draw1HSwordAndShieldMontage);
 	}
@@ -302,10 +331,27 @@ void ASGCharacter::MulticastPlayDraw1HSwordAndShieldMontage_Implementation()
 
 void ASGCharacter::MulticastPlaySheath1HSwordAndShieldMontage_Implementation()
 {
-	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-	if(AnimInstance && Draw1HSwordAndShieldMontage)
+	if(UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance(); AnimInstance && Draw1HSwordAndShieldMontage)
 	{
 		AnimInstance->Montage_Play(Sheath1HSwordAndShieldMontage);
+	}
+}
+
+void ASGCharacter::MulticastPlayRollMontage_Implementation(const FName& Direction)
+{
+	if(UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance(); AnimInstance && RollMontage)
+	{
+		AnimInstance->Montage_Play(RollMontage);
+		AnimInstance->Montage_JumpToSection(Direction);
+	}
+}
+
+void ASGCharacter::MulticastPlayDodgeMontage_Implementation(const FName& Direction)
+{
+	if(UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance(); AnimInstance && DodgeMontage)
+	{
+		AnimInstance->Montage_Play(DodgeMontage);
+		AnimInstance->Montage_JumpToSection(Direction);
 	}
 }
 
@@ -313,8 +359,7 @@ void ASGCharacter::ClientHideContainerWidget_Implementation(UInventoryComponent*
 {
 	if(GetWorld() && GetWorld()->GetFirstPlayerController() && GetWorld()->GetFirstPlayerController()->GetHUD())
 	{
-		ASGHUD* SGHUD = Cast<ASGHUD>(GetWorld()->GetFirstPlayerController()->GetHUD());
-		if(SGHUD && SGHUD->bIsContainerOpen)
+		if(ASGHUD* SGHUD = Cast<ASGHUD>(GetWorld()->GetFirstPlayerController()->GetHUD()); SGHUD && SGHUD->bIsContainerOpen)
 		{
 			SGHUD->ToggleShowContainer(InventoryComponent);
 		}

@@ -25,6 +25,8 @@ public:
 	void Attack();
 	void Block();
 	void Unblock();
+	void Roll(const FName& Direction);
+	void Dodge(const FName& Direction);
 
 	void DrawPrimaryWeapon();
 
@@ -98,6 +100,12 @@ private:
 
 	UPROPERTY(EditAnywhere, Category=Combat)
 	UAnimMontage* AttackCMontage;
+	
+	UPROPERTY(EditAnywhere, Category=Combat)
+	UAnimMontage* AttackDMontage;
+	
+	UPROPERTY(EditAnywhere, Category=Combat)
+	UAnimMontage* AttackEMontage;
 
 	UPROPERTY(EditAnywhere)
 	float BaseWalkSpeed = 450.f;

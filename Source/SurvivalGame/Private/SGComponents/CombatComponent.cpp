@@ -5,6 +5,7 @@
 #include "Engine/SkeletalMeshSocket.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Net/UnrealNetwork.h"
+#include "Player/SGPlayerController.h"
 #include "SGTypes/CombatState.h"
 #include "Weapon/Weapon.h"
 
@@ -102,6 +103,8 @@ void UCombatComponent::DrawPrimaryWeapon()
 void UCombatComponent::Attack()
 {
 	if(!EquippedWeapon || Character->GetCharacterMovement()->IsFalling()) return;
+	Character->BlockButtonReleased();
+	
 	switch (AttackCombo)
 	{
 	case 0:
@@ -117,17 +120,31 @@ void UCombatComponent::Attack()
 		{
 			AttackCombo = 2;
 			CombatState = ECombatState::ECS_Attacking;
-
 			Character->MulticastPlayAttackMontage(AttackBMontage);
 		}
 		break;
 	case 2:
 		if(CombatState == ECombatState::ECS_Unoccupied && Character)
 		{
+			AttackCombo = 3;
+			CombatState = ECombatState::ECS_Attacking;
+			Character->MulticastPlayAttackMontage(AttackCMontage);
+		}
+		break;
+	case 3:
+		if(CombatState == ECombatState::ECS_Unoccupied && Character)
+		{
+			AttackCombo = 4;
+			CombatState = ECombatState::ECS_Attacking;
+			Character->MulticastPlayAttackMontage(AttackDMontage);
+		}
+		break;
+	case 4:
+		if(CombatState == ECombatState::ECS_Unoccupied && Character)
+		{
 			AttackCombo = 0;
 			CombatState = ECombatState::ECS_Attacking;
-
-			Character->MulticastPlayAttackMontage(AttackCMontage);
+			Character->MulticastPlayAttackMontage(AttackEMontage);
 		}
 		break;
 	}
@@ -135,7 +152,7 @@ void UCombatComponent::Attack()
 
 void UCombatComponent::Block()
 {
-	if(!Shield || !bIsShieldDrawn) return;
+	if(!Shield || !bIsShieldDrawn || CombatState != ECombatState::ECS_Unoccupied) return;
 	bIsBlocking = true;
 	if(Character && Character->GetMovementComponent())
 	{
@@ -149,6 +166,26 @@ void UCombatComponent::Unblock()
 	if(Character && Character->GetMovementComponent())
 	{
 		Character->GetCharacterMovement()->MaxWalkSpeed = BaseWalkSpeed;
+	}
+}
+
+void UCombatComponent::Roll(const FName& Direction)
+{
+	if(CombatState != ECombatState::ECS_Unoccupied) return;
+	if(Character)
+	{
+		CombatState = ECombatState::ECS_Dodging;
+		Character->MulticastPlayRollMontage(Direction);
+	}
+}
+
+void UCombatComponent::Dodge(const FName& Direction)
+{
+	if(CombatState != ECombatState::ECS_Unoccupied) return;
+	if(Character)
+	{
+		CombatState = ECombatState::ECS_Dodging;
+		Character->MulticastPlayDodgeMontage(Direction);
 	}
 }
 
@@ -229,7 +266,7 @@ void UCombatComponent::Attach1HToBack(AActor* ActorToAttach) const
 
 void UCombatComponent::UnSheathAttach1HSwordAndShield()
 {
-	if(Character && Character->HasAuthority() && PrimaryWeapon && Shield)
+	if(Character && PrimaryWeapon && Shield)
 	{
 		EquippedWeapon = PrimaryWeapon;
 		Attach1HSwordToRightHand(PrimaryWeapon);
@@ -240,7 +277,7 @@ void UCombatComponent::UnSheathAttach1HSwordAndShield()
 
 void UCombatComponent::SheathAttach1HSwordAndShield()
 {
-	if(Character && Character->HasAuthority() && EquippedWeapon && Shield)
+	if(Character && EquippedWeapon && Shield)
 	{
 		Attach1HToSide(EquippedWeapon);
 		FTimerHandle SheathTimer;
@@ -262,12 +299,6 @@ void UCombatComponent::OnRep_CombatState()
 	case ECombatState::ECS_Attacking:
 		if(Character && !Character->IsLocallyControlled())
 		{
-		}
-		break;
-	case ECombatState::ECS_SwappingWeapons:
-		if(Character && !Character->IsLocallyControlled())
-		{
-			
 		}
 		break;
 	}

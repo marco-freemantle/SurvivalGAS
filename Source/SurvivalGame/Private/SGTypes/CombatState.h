@@ -5,7 +5,7 @@ enum class ECombatState : uint8
 {
 	ECS_Unoccupied UMETA(DisplayName = "Unoccupied"),
 	ECS_Attacking UMETA(DisplayName = "Attacking"),
-	ECS_SwappingWeapons UMETA(DisplayName = "Swapping Weapons"),
+	ECS_Dodging UMETA(DisplayName = "Dodging"),
 
 	ECS_MAX UMETA(DisplayName = "DefaultMax")
 };

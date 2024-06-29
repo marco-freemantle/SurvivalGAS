@@ -35,6 +35,8 @@ public:
 	void BlockButtonPressed();
 	void BlockButtonReleased();
 	void DrawPrimaryButtonPressed();
+	void RollButtonPressed(const FName& Direction);
+	void DodgeButtonPressed(const FName& Direction);
 	
 	void TryEquipWeapons(FSlotStruct PrimaryWeaponSlot, FSlotStruct ShieldSlot) const;
 
@@ -46,6 +48,12 @@ public:
 	
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastPlaySheath1HSwordAndShieldMontage();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastPlayRollMontage(const FName& Direction);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastPlayDodgeMontage(const FName& Direction);
 
 	UFUNCTION(Client, Reliable)
 	void ClientHideContainerWidget(UInventoryComponent* ContainerInventoryComponent) const;
@@ -87,6 +95,12 @@ private:
 	UPROPERTY(EditAnywhere, Category=Combat)
 	UAnimMontage* Sheath1HSwordAndShieldMontage;
 
+	UPROPERTY(EditAnywhere, Category=Combat)
+	UAnimMontage* RollMontage;
+
+	UPROPERTY(EditAnywhere, Category=Combat)
+	UAnimMontage* DodgeMontage;
+
 	UFUNCTION()
 	void OnRep_OverlappingWeapon(AWeapon* LastWeapon);
 
@@ -107,6 +121,12 @@ private:
 
 	UFUNCTION(Server, Reliable)
 	void ServerDrawPrimary();
+
+	UFUNCTION(Server, Reliable)
+	void ServerRoll(const FName& Direction);
+
+	UFUNCTION(Server, Reliable)
+	void ServerDodge(const FName& Direction);
 
 	UPROPERTY(EditAnywhere, Category=Audio)
 	USoundBase* PickupSound;

@@ -57,9 +57,6 @@ private:
 	TObjectPtr<UInputAction> InteractAction;
 
 	UPROPERTY(EditAnywhere, Category = "Input")
-	TObjectPtr<UInputAction> CrouchAction;
-
-	UPROPERTY(EditAnywhere, Category = "Input")
 	TObjectPtr<UInputAction> PauseGameAction;
 
 	UPROPERTY(EditAnywhere, Category = "Input")
@@ -83,13 +80,17 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Input")
 	TObjectPtr<UInputAction> ToggleCharacterSheetAction;
 
+	UPROPERTY(EditAnywhere, Category = "Input")
+	TObjectPtr<UInputAction> RollAction;
+
+	UPROPERTY(EditAnywhere, Category = "Input")
+	TObjectPtr<UInputAction> DodgeAction;
+
 	void Move(const FInputActionValue& InputActionValue);
 	void LookUp(const FInputActionValue& InputActionValue);
 	void Turn(const FInputActionValue& InputActionValue);
 	void Jump(const FInputActionValue& InputActionValue);
 	void Interact(const FInputActionValue& InputActionValue);
-	void Crouch(const FInputActionValue& InputActionValue);
-	void UnCrouch(const FInputActionValue& InputActionValue);
 	void DrawPrimary(const FInputActionValue& InputActionValue);
 	void Lockon(const FInputActionValue& InputActionValue);
 	void SwitchLockonTargetLeft(const FInputActionValue& InputActionValue);
@@ -98,6 +99,8 @@ private:
 	void Block(const FInputActionValue& InputActionValue);
 	void Unblock(const FInputActionValue& InputActionValue);
 	void ToggleCharacterSheet(const FInputActionValue& InputActionValue);
+	void Roll(const FInputActionValue& InputActionValue);
+	void Dodge(const FInputActionValue& InputActionValue);
 	
 	void SetbCanEquipTrue();
 
