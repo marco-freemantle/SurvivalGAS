@@ -4,28 +4,29 @@
 
 #include "CoreMinimal.h"
 #include "AbilitySystemInterface.h"
-#include "GameFramework/PlayerState.h"
-#include "SGPlayerState.generated.h"
+#include "GameFramework/Character.h"
+#include "SGEnemy.generated.h"
 
 class UAttributeSet;
 class UAbilitySystemComponent;
-/**
- * 
- */
+
 UCLASS()
-class SURVIVALGAME_API ASGPlayerState : public APlayerState, public IAbilitySystemInterface
+class SURVIVALGAME_API ASGEnemy : public ACharacter, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 
 public:
-	ASGPlayerState();
+	ASGEnemy();
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	UAttributeSet* GetAttributeSet() const { return AttributeSet; }
 
 protected:
+	virtual void BeginPlay() override;
+
 	UPROPERTY()
 	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
 
 	UPROPERTY()
 	TObjectPtr<UAttributeSet> AttributeSet;
+
 };

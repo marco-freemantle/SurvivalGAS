@@ -1,20 +1,32 @@
 // Copyright Marco Freemantle
 
-#include "Player/SGPlayerState.h"
+
+#include "Character/SGEnemy.h"
+
 #include "AbilitySystem/SGAbilitySystemComponent.h"
 #include "AbilitySystem/SGAttributeSet.h"
 
-ASGPlayerState::ASGPlayerState()
+ASGEnemy::ASGEnemy()
 {
 	AbilitySystemComponent = CreateDefaultSubobject<USGAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
 	AbilitySystemComponent->SetIsReplicated(true);
-	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
+	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Minimal);
 	AttributeSet = CreateDefaultSubobject<USGAttributeSet>(TEXT("AttributeSet"));
-	
+
 	NetUpdateFrequency = 100.f;
+	MinNetUpdateFrequency = 33.f;
 }
 
-UAbilitySystemComponent* ASGPlayerState::GetAbilitySystemComponent() const
+void ASGEnemy::BeginPlay()
+{
+	Super::BeginPlay();
+	
+	AbilitySystemComponent->InitAbilityActorInfo(this, this);
+}
+
+UAbilitySystemComponent* ASGEnemy::GetAbilitySystemComponent() const
 {
 	return AbilitySystemComponent;
 }
+
+

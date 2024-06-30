@@ -5,8 +5,10 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Interfaces/LockonInterface.h"
+#include "AbilitySystemInterface.h"
 #include "SGCharacter.generated.h"
 
+class UAttributeSet;
 struct FSlotStruct;
 class UInventoryComponent;
 class ULockonComponent;
@@ -14,10 +16,11 @@ class UCombatComponent;
 class ASGPlayerController;
 class USpringArmComponent;
 class UCameraComponent;
+class UAbilitySystemComponent;
 class AWeapon;
 
 UCLASS()
-class SURVIVALGAME_API ASGCharacter : public ACharacter, public ILockonInterface
+class SURVIVALGAME_API ASGCharacter : public ACharacter, public ILockonInterface, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 
@@ -26,6 +29,8 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void PostInitializeComponents() override;
+	virtual void PossessedBy(AController* NewController) override;
+	virtual void OnRep_PlayerState() override;
 
 	void SetOverlappingWeapon(AWeapon* Weapon);
 	void SetOverlappingInteractable(AActor* Interactable);
@@ -36,7 +41,6 @@ public:
 	void BlockButtonReleased();
 	void DrawPrimaryButtonPressed();
 	void RollButtonPressed(const FName& Direction);
-	void DodgeButtonPressed(const FName& Direction);
 	
 	void TryEquipWeapons(FSlotStruct PrimaryWeaponSlot, FSlotStruct ShieldSlot) const;
 
@@ -52,9 +56,6 @@ public:
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastPlayRollMontage(const FName& Direction);
 
-	UFUNCTION(NetMulticast, Reliable)
-	void MulticastPlayDodgeMontage(const FName& Direction);
-
 	UFUNCTION(Client, Reliable)
 	void ClientHideContainerWidget(UInventoryComponent* ContainerInventoryComponent) const;
 
@@ -63,6 +64,12 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+
+	UPROPERTY()
+	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
+
+	UPROPERTY()
+	TObjectPtr<UAttributeSet> AttributeSet;
 
 private:
 	UPROPERTY(VisibleAnywhere, Category = Camera)
@@ -98,9 +105,6 @@ private:
 	UPROPERTY(EditAnywhere, Category=Combat)
 	UAnimMontage* RollMontage;
 
-	UPROPERTY(EditAnywhere, Category=Combat)
-	UAnimMontage* DodgeMontage;
-
 	UFUNCTION()
 	void OnRep_OverlappingWeapon(AWeapon* LastWeapon);
 
@@ -125,15 +129,16 @@ private:
 	UFUNCTION(Server, Reliable)
 	void ServerRoll(const FName& Direction);
 
-	UFUNCTION(Server, Reliable)
-	void ServerDodge(const FName& Direction);
-
 	UPROPERTY(EditAnywhere, Category=Audio)
 	USoundBase* PickupSound;
+
+	void InitAbilityActorInfo();
 
 public:
 	FORCEINLINE ULockonComponent* GetLockonComponent() const { return LockonComponent; }
 	FORCEINLINE UCombatComponent* GetCombatComponent() const { return CombatComponent; }
 	FORCEINLINE UInventoryComponent* GetInventoryComponent() const { return InventoryComponent; }
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+	UAttributeSet* GetAttributeSet() const { return AttributeSet; }
 	FORCEINLINE UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 };

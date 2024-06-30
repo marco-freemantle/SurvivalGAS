@@ -1,6 +1,8 @@
 // Copyright Marco Freemantle
 
 #include "Character/SGCharacter.h"
+
+#include "AbilitySystemComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -8,6 +10,7 @@
 #include "Interfaces/InteractInterface.h"
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
+#include "Player/SGPlayerState.h"
 #include "SGComponents/CombatComponent.h"
 #include "SGComponents/InventoryComponent.h"
 #include "SGComponents/LockonComponent.h"
@@ -41,7 +44,7 @@ ASGCharacter::ASGCharacter()
 
 	SpawnCollisionHandlingMethod = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 
-	NetUpdateFrequency = 66.f;
+	NetUpdateFrequency = 100.f;
 	MinNetUpdateFrequency = 33.f;
 }
 
@@ -69,6 +72,22 @@ void ASGCharacter::PostInitializeComponents()
 	{
 		InventoryComponent->Character = this;
 	}
+}
+
+void ASGCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	// Init ability actor info for the Server
+	InitAbilityActorInfo();
+}
+
+void ASGCharacter::OnRep_PlayerState()
+{
+	Super::OnRep_PlayerState();
+
+	// Init ability actor info for the Client
+	InitAbilityActorInfo();
 }
 
 void ASGCharacter::BeginPlay()
@@ -197,11 +216,6 @@ void ASGCharacter::RollButtonPressed(const FName& Direction)
 	ServerRoll(Direction);
 }
 
-void ASGCharacter::DodgeButtonPressed(const FName& Direction)
-{
-	ServerDodge(Direction);
-}
-
 void ASGCharacter::ServerInteract_Implementation()
 {
 	if(InventoryComponent && OverlappingWeapon)
@@ -304,14 +318,8 @@ void ASGCharacter::ServerRoll_Implementation(const FName& Direction)
 	if(CombatComponent)
 	{
 		CombatComponent->Roll(Direction);
-	}}
-
-void ASGCharacter::ServerDodge_Implementation(const FName& Direction)
-{
-	if(CombatComponent)
-	{
-		CombatComponent->Dodge(Direction);
-	}}
+	}
+}
 
 void ASGCharacter::MulticastPlayAttackMontage_Implementation(UAnimMontage* Montage)
 {
@@ -346,15 +354,6 @@ void ASGCharacter::MulticastPlayRollMontage_Implementation(const FName& Directio
 	}
 }
 
-void ASGCharacter::MulticastPlayDodgeMontage_Implementation(const FName& Direction)
-{
-	if(UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance(); AnimInstance && DodgeMontage)
-	{
-		AnimInstance->Montage_Play(DodgeMontage);
-		AnimInstance->Montage_JumpToSection(Direction);
-	}
-}
-
 void ASGCharacter::ClientHideContainerWidget_Implementation(UInventoryComponent* ContainerInventoryComponent) const
 {
 	if(GetWorld() && GetWorld()->GetFirstPlayerController() && GetWorld()->GetFirstPlayerController()->GetHUD())
@@ -372,6 +371,20 @@ void ASGCharacter::ClientPlayPickupSound_Implementation()
 	{
 		UGameplayStatics::PlaySound2D(this, PickupSound);
 	}
+}
+
+void ASGCharacter::InitAbilityActorInfo()
+{
+	ASGPlayerState* SGPlayerState = GetPlayerState<ASGPlayerState>();
+	if(!SGPlayerState) return;
+	SGPlayerState->GetAbilitySystemComponent()->InitAbilityActorInfo(SGPlayerState, this);
+	AbilitySystemComponent = SGPlayerState->GetAbilitySystemComponent();
+	AttributeSet = SGPlayerState->GetAttributeSet();
+}
+
+UAbilitySystemComponent* ASGCharacter::GetAbilitySystemComponent() const
+{
+	return AbilitySystemComponent;
 }
 
 

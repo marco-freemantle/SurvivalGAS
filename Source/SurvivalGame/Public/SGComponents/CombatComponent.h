@@ -26,7 +26,6 @@ public:
 	void Block();
 	void Unblock();
 	void Roll(const FName& Direction);
-	void Dodge(const FName& Direction);
 
 	void DrawPrimaryWeapon();
 

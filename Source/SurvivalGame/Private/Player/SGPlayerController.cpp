@@ -71,7 +71,6 @@ void ASGPlayerController::SetupInputComponent()
 	SGInputComponent->BindAction(DrawPrimaryAction, ETriggerEvent::Started, this, &ASGPlayerController::DrawPrimary);
 	SGInputComponent->BindAction(ToggleCharacterSheetAction, ETriggerEvent::Started, this, &ASGPlayerController::ToggleCharacterSheet);
 	SGInputComponent->BindAction(RollAction, ETriggerEvent::Started, this, &ASGPlayerController::Roll);
-	SGInputComponent->BindAction(DodgeAction, ETriggerEvent::Started, this, &ASGPlayerController::Dodge);
 }
 
 void ASGPlayerController::Move(const FInputActionValue& InputActionValue)
@@ -216,51 +215,6 @@ void ASGPlayerController::Roll(const FInputActionValue& InputActionValue)
 			}
 		}
 		SGCharacter->RollButtonPressed(Direction);
-	}
-}
-
-void ASGPlayerController::Dodge(const FInputActionValue& InputActionValue)
-{
-	if (ASGCharacter* SGCharacter = Cast<ASGCharacter>(GetCharacter()))
-	{
-		const FVector Velocity = SGCharacter->GetVelocity();
-		
-		// Determine the direction to roll
-		const FVector ForwardVector = SGCharacter->GetActorForwardVector();
-		const FVector RightVector = SGCharacter->GetActorRightVector();
-
-		// Normalise velocity to get the direction of movement
-		const FVector MovementDirection = Velocity.GetSafeNormal();
-
-		// Determine the dot product to find the direction
-		const float ForwardDot = FVector::DotProduct(MovementDirection, ForwardVector);
-		const float RightDot = FVector::DotProduct(MovementDirection, RightVector);
-
-		FName Direction;
-
-		if (FMath::Abs(ForwardDot) > FMath::Abs(RightDot))
-		{
-			if (ForwardDot > 0)
-			{
-				Direction = TEXT("Forward");
-			}
-			else
-			{
-				Direction = TEXT("Backward");
-			}
-		}
-		else
-		{
-			if (RightDot > 0)
-			{
-				Direction = TEXT("Right");
-			}
-			else
-			{
-				Direction = TEXT("Left");
-			}
-		}
-		SGCharacter->DodgeButtonPressed(Direction);
 	}
 }
 

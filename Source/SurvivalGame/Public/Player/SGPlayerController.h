@@ -83,9 +83,6 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Input")
 	TObjectPtr<UInputAction> RollAction;
 
-	UPROPERTY(EditAnywhere, Category = "Input")
-	TObjectPtr<UInputAction> DodgeAction;
-
 	void Move(const FInputActionValue& InputActionValue);
 	void LookUp(const FInputActionValue& InputActionValue);
 	void Turn(const FInputActionValue& InputActionValue);
@@ -100,7 +97,6 @@ private:
 	void Unblock(const FInputActionValue& InputActionValue);
 	void ToggleCharacterSheet(const FInputActionValue& InputActionValue);
 	void Roll(const FInputActionValue& InputActionValue);
-	void Dodge(const FInputActionValue& InputActionValue);
 	
 	void SetbCanEquipTrue();
 

@@ -179,16 +179,6 @@ void UCombatComponent::Roll(const FName& Direction)
 	}
 }
 
-void UCombatComponent::Dodge(const FName& Direction)
-{
-	if(CombatState != ECombatState::ECS_Unoccupied) return;
-	if(Character)
-	{
-		CombatState = ECombatState::ECS_Dodging;
-		Character->MulticastPlayDodgeMontage(Direction);
-	}
-}
-
 void UCombatComponent::ResetCombo()
 {
 	AttackCombo = 0;
