@@ -14,7 +14,7 @@ APickupActor::APickupActor()
 
 	bReplicates = true;
 
-	Mesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Mesh"));
+	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
 	SetRootComponent(Mesh);
 	Mesh->SetCollisionResponseToAllChannels(ECR_Block);
 	Mesh->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
@@ -75,7 +75,6 @@ void APickupActor::ShowPickupWidget(const bool bShowWidget)
 	{
 		InteractWidget->SetVisibility(bShowWidget);
 	}
-	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 4.f, FColor::Red, FString("1"));
 }
 
 void APickupActor::InteractWith(ASGCharacter* SGCharacter)

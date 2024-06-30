@@ -3,6 +3,8 @@
 
 #include "SGComponents/InventoryComponent.h"
 
+#include "AbilitySystemComponent.h"
+#include "AbilitySystem/SGAttributeSet.h"
 #include "Character/SGCharacter.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Net/UnrealNetwork.h"
@@ -266,7 +268,15 @@ void UInventoryComponent::RemoveFromInventory(int32 Index, bool bRemoveWholeStac
 		Content[Index] = EmptyStruct;
 		if(bIsConsumed)
 		{
-			// TODO: 
+			// TODO: This is DISGUSTING
+			if(IAbilitySystemInterface* ASCInterface = Cast<IAbilitySystemInterface>(GetOwner()))
+			{
+				if(const USGAttributeSet* SGAttributeSet = Cast<USGAttributeSet>(ASCInterface->GetAbilitySystemComponent()->GetAttributeSet(USGAttributeSet::StaticClass())))
+				{
+					USGAttributeSet* MutableSGAttributeSet = const_cast<USGAttributeSet*>(SGAttributeSet);
+					MutableSGAttributeSet->SetHealth(SGAttributeSet->GetHealth() + 25.f);
+				}
+			}
 		}
 		else
 		{
@@ -278,7 +288,15 @@ void UInventoryComponent::RemoveFromInventory(int32 Index, bool bRemoveWholeStac
 		Content[Index].Quantity -= 1;
 		if(bIsConsumed)
 		{
-			// TODO:
+			// TODO: This is DISGUSTING
+			if(IAbilitySystemInterface* ASCInterface = Cast<IAbilitySystemInterface>(GetOwner()))
+			{
+				if(const USGAttributeSet* SGAttributeSet = Cast<USGAttributeSet>(ASCInterface->GetAbilitySystemComponent()->GetAttributeSet(USGAttributeSet::StaticClass())))
+				{
+					USGAttributeSet* MutableSGAttributeSet = const_cast<USGAttributeSet*>(SGAttributeSet);
+					MutableSGAttributeSet->SetHealth(SGAttributeSet->GetHealth() + 25.f);
+				}
+			}
 		}
 		else
 		{

@@ -26,7 +26,6 @@ void UItemDataComponent::InteractWith(ASGCharacter* SGCharacter)
 
 void UItemDataComponent::ShowPickupWidget(bool bShowWidget)
 {
-	GEngine->AddOnScreenDebugMessage(INDEX_NONE, 4.f, FColor::Red, FString("2"));
 
 }
 
