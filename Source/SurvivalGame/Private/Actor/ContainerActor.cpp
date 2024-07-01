@@ -1,6 +1,6 @@
 // Copyright Marco Freemantle
 
-#include "Actor/Chest.h"
+#include "Actor/ContainerActor.h"
 
 #include "Character/SGCharacter.h"
 #include "Components/SphereComponent.h"
@@ -9,7 +9,7 @@
 #include "Player/SGPlayerController.h"
 #include "SGComponents/InventoryComponent.h"
 
-AChest::AChest()
+AContainerActor::AContainerActor()
 {
 	PrimaryActorTick.bCanEverTick = false;
 
@@ -33,7 +33,7 @@ AChest::AChest()
 	InventoryComponent->SetIsReplicated(true);
 }
 
-void AChest::BeginPlay()
+void AContainerActor::BeginPlay()
 {
 	Super::BeginPlay();
 
@@ -41,8 +41,8 @@ void AChest::BeginPlay()
 	{
 		AreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		AreaSphere->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
-		AreaSphere->OnComponentBeginOverlap.AddDynamic(this, &AChest::OnSphereOverlap);
-		AreaSphere->OnComponentEndOverlap.AddDynamic(this, &AChest::OnSphereEndOverlap);
+		AreaSphere->OnComponentBeginOverlap.AddDynamic(this, &AContainerActor::OnSphereOverlap);
+		AreaSphere->OnComponentEndOverlap.AddDynamic(this, &AContainerActor::OnSphereEndOverlap);
 		SetReplicateMovement(true);
 	}
 	if(InteractWidget)
@@ -51,7 +51,7 @@ void AChest::BeginPlay()
 	}
 }
 
-void AChest::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+void AContainerActor::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if(ASGCharacter* SGCharacter = Cast<ASGCharacter>(OtherActor))
@@ -60,7 +60,7 @@ void AChest::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* O
 	}
 }
 
-void AChest::OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+void AContainerActor::OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	if(ASGCharacter* SGCharacter = Cast<ASGCharacter>(OtherActor))
@@ -70,7 +70,7 @@ void AChest::OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor
 	}
 }
 
-void AChest::ShowPickupWidget(const bool bShowWidget)
+void AContainerActor::ShowPickupWidget(const bool bShowWidget)
 {
 	if(InteractWidget)
 	{
@@ -78,7 +78,7 @@ void AChest::ShowPickupWidget(const bool bShowWidget)
 	}
 }
 
-void AChest::InteractWith(ASGCharacter* SGCharacter)
+void AContainerActor::InteractWith(ASGCharacter* SGCharacter)
 {
 	if(ASGPlayerController* SGController = Cast<ASGPlayerController>(GetWorld()->GetFirstPlayerController()))
 	{

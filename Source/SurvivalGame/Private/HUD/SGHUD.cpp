@@ -1,17 +1,37 @@
 // Copyright Marco Freemantle
 
 #include "HUD/SGHUD.h"
-#include "Blueprint/UserWidget.h"
+#include "HUD/Widget/SGUserWidget.h"
+#include "HUD/WidgetController/OverlayWidgetController.h"
 #include "Player/SGPlayerController.h"
 
-void ASGHUD::DrawHUD()
+void ASGHUD::InitOverlay(APlayerController* PC, APlayerState* PS, UAbilitySystemComponent* ASC, UAttributeSet* AS)
 {
-	Super::DrawHUD();
+	checkf(OverlayWidgetClass, TEXT("Overlay Widget Class uninitialised"));
+	checkf(OverlayWidgetControllerClass, TEXT("Overlay Widget Controller Class uninitialised"));
+	
+	UUserWidget* Widget = CreateWidget<UUserWidget>(GetWorld(), OverlayWidgetClass);
+	OverlayWidget = Cast<USGUserWidget>(Widget);
+
+	const FWidgetControllerParams WidgetControllerParams(PC, PS, ASC, AS);
+	UOverlayWidgetController* WidgetController = GetOverlayWidgetController(WidgetControllerParams);
+
+	OverlayWidget->SetWidgetController(WidgetController);
+	WidgetController->BroadcastInitialValues();
+	Widget->AddToViewport();
 }
 
-void ASGHUD::BeginPlay()
+UOverlayWidgetController* ASGHUD::GetOverlayWidgetController(const FWidgetControllerParams& WCParams)
 {
-	Super::BeginPlay();
+	if(OverlayWidgetController == nullptr)
+	{
+		OverlayWidgetController = NewObject<UOverlayWidgetController>(this, OverlayWidgetControllerClass);
+		OverlayWidgetController->SetWidgetControllerParams(WCParams);
+		OverlayWidgetController->BindCallbacksToDependencies();
+
+		return OverlayWidgetController;
+	}
+	return OverlayWidgetController;
 }
 
 void ASGHUD::AddCharacterSheet()

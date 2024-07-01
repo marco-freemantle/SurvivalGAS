@@ -5,6 +5,7 @@
 
 #include "AbilitySystemComponent.h"
 #include "AbilitySystem/SGAttributeSet.h"
+#include "Actor/ConsumableActor.h"
 #include "Character/SGCharacter.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Net/UnrealNetwork.h"
@@ -268,15 +269,7 @@ void UInventoryComponent::RemoveFromInventory(int32 Index, bool bRemoveWholeStac
 		Content[Index] = EmptyStruct;
 		if(bIsConsumed)
 		{
-			// TODO: This is DISGUSTING
-			if(IAbilitySystemInterface* ASCInterface = Cast<IAbilitySystemInterface>(GetOwner()))
-			{
-				if(const USGAttributeSet* SGAttributeSet = Cast<USGAttributeSet>(ASCInterface->GetAbilitySystemComponent()->GetAttributeSet(USGAttributeSet::StaticClass())))
-				{
-					USGAttributeSet* MutableSGAttributeSet = const_cast<USGAttributeSet*>(SGAttributeSet);
-					MutableSGAttributeSet->SetHealth(SGAttributeSet->GetHealth() + 25.f);
-				}
-			}
+			ConsumeItem(Item);
 		}
 		else
 		{
@@ -288,15 +281,7 @@ void UInventoryComponent::RemoveFromInventory(int32 Index, bool bRemoveWholeStac
 		Content[Index].Quantity -= 1;
 		if(bIsConsumed)
 		{
-			// TODO: This is DISGUSTING
-			if(IAbilitySystemInterface* ASCInterface = Cast<IAbilitySystemInterface>(GetOwner()))
-			{
-				if(const USGAttributeSet* SGAttributeSet = Cast<USGAttributeSet>(ASCInterface->GetAbilitySystemComponent()->GetAttributeSet(USGAttributeSet::StaticClass())))
-				{
-					USGAttributeSet* MutableSGAttributeSet = const_cast<USGAttributeSet*>(SGAttributeSet);
-					MutableSGAttributeSet->SetHealth(SGAttributeSet->GetHealth() + 25.f);
-				}
-			}
+			ConsumeItem(Item);
 		}
 		else
 		{
@@ -336,6 +321,17 @@ FItemStruct UInventoryComponent::GetItemData(FName ItemID) const
 		return FItemStruct();
 	}
 	return FItemStruct();
+}
+
+void UInventoryComponent::ConsumeItem(const FName& Item)
+{
+	if (const TSubclassOf<AActor> ItemClass = GetItemData(Item).ItemClass; ItemClass && ItemClass->IsChildOf(AConsumableActor::StaticClass()))
+	{
+		if (const AConsumableActor* ConsumableActor = ItemClass->GetDefaultObject<AConsumableActor>())
+		{
+			ConsumableActor->ConsumeItem(Character);
+		}
+	}
 }
 
 void UInventoryComponent::ClientOnLocalInteract_Implementation(AActor* TargetActor, AActor* Interactor)

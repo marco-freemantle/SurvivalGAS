@@ -5,10 +5,14 @@
 
 USGAttributeSet::USGAttributeSet()
 {
-	InitHealth(100.f);
+	InitHealth(50.f);
 	InitMaxHealth(100.f);
-	InitMana(100.f);
+	
+	InitMana(50.f);
 	InitMaxMana(100.f);
+	
+	InitStamina(50.f);
+	InitMaxStamina(100.f);
 }
 
 void USGAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -17,8 +21,12 @@ void USGAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutL
 
 	DOREPLIFETIME_CONDITION_NOTIFY(USGAttributeSet, Health, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(USGAttributeSet, MaxHealth, COND_None, REPNOTIFY_Always);
+	
 	DOREPLIFETIME_CONDITION_NOTIFY(USGAttributeSet, Mana, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(USGAttributeSet, MaxMana, COND_None, REPNOTIFY_Always);
+	
+	DOREPLIFETIME_CONDITION_NOTIFY(USGAttributeSet, Stamina, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(USGAttributeSet, MaxStamina, COND_None, REPNOTIFY_Always);
 }
 
 void USGAttributeSet::OnRep_Health(const FGameplayAttributeData& OldHealth) const
@@ -39,4 +47,14 @@ void USGAttributeSet::OnRep_Mana(const FGameplayAttributeData& OldMana) const
 void USGAttributeSet::OnRep_MaxMana(const FGameplayAttributeData& OldMaxMana) const
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(USGAttributeSet, MaxMana, OldMaxMana);
+}
+
+void USGAttributeSet::OnRep_Stamina(const FGameplayAttributeData& OldStamina) const
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(USGAttributeSet, Stamina, OldStamina);
+}
+
+void USGAttributeSet::OnRep_MaxStamina(const FGameplayAttributeData& OldMaxStamina) const
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(USGAttributeSet, MaxStamina, OldMaxStamina);
 }

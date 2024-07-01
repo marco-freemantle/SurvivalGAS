@@ -1,14 +1,16 @@
 // Copyright Marco Freemantle
 
 
-#include "Actor/PickupActor.h"
+#include "Actor/ConsumableActor.h"
 
+#include "AbilitySystem/SGAttributeSet.h"
 #include "Character/SGCharacter.h"
 #include "Components/SphereComponent.h"
 #include "Components/WidgetComponent.h"
+#include "AbilitySystemBlueprintLibrary.h"
 #include "SGComponents/ItemDataComponent.h"
 
-APickupActor::APickupActor()
+AConsumableActor::AConsumableActor()
 {
 	PrimaryActorTick.bCanEverTick = false;
 
@@ -32,7 +34,7 @@ APickupActor::APickupActor()
 	ItemDataComponent->SetIsReplicated(true);
 }
 
-void APickupActor::BeginPlay()
+void AConsumableActor::BeginPlay()
 {
 	Super::BeginPlay();
 
@@ -40,8 +42,8 @@ void APickupActor::BeginPlay()
 	{
 		AreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		AreaSphere->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
-		AreaSphere->OnComponentBeginOverlap.AddDynamic(this, &APickupActor::OnSphereOverlap);
-		AreaSphere->OnComponentEndOverlap.AddDynamic(this, &APickupActor::OnSphereEndOverlap);
+		AreaSphere->OnComponentBeginOverlap.AddDynamic(this, &AConsumableActor::OnSphereOverlap);
+		AreaSphere->OnComponentEndOverlap.AddDynamic(this, &AConsumableActor::OnSphereEndOverlap);
 		SetReplicateMovement(true);
 	}
 	if(InteractWidget)
@@ -50,7 +52,7 @@ void APickupActor::BeginPlay()
 	}
 }
 
-void APickupActor::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+void AConsumableActor::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if(ASGCharacter* SGCharacter = Cast<ASGCharacter>(OtherActor))
@@ -59,17 +61,16 @@ void APickupActor::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AAc
 	}
 }
 
-void APickupActor::OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+void AConsumableActor::OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	if(ASGCharacter* SGCharacter = Cast<ASGCharacter>(OtherActor))
 	{
 		SGCharacter->SetOverlappingInteractable(nullptr);
-		SGCharacter->ClientHideContainerWidget(InventoryComponent);
 	}
 }
 
-void APickupActor::ShowPickupWidget(const bool bShowWidget)
+void AConsumableActor::ShowPickupWidget(const bool bShowWidget)
 {
 	if(InteractWidget)
 	{
@@ -77,7 +78,19 @@ void APickupActor::ShowPickupWidget(const bool bShowWidget)
 	}
 }
 
-void APickupActor::InteractWith(ASGCharacter* SGCharacter)
+void AConsumableActor::InteractWith(ASGCharacter* SGCharacter)
 {
+}
+
+void AConsumableActor::ConsumeItem(AActor* TargetActor) const
+{
+	UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor);
+	if(!TargetASC) return;
+
+	check(GameplayEffectClass);
+	FGameplayEffectContextHandle EffectContextHandle = TargetASC->MakeEffectContext();
+	EffectContextHandle.AddSourceObject(this);
+	const FGameplayEffectSpecHandle EffectSpecHandle = TargetASC->MakeOutgoingSpec(GameplayEffectClass, 1.f, EffectContextHandle);
+	TargetASC->ApplyGameplayEffectSpecToSelf(*EffectSpecHandle.Data.Get());
 }
 

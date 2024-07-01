@@ -10,6 +10,7 @@
 #include "Interfaces/InteractInterface.h"
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
+#include "Player/SGPlayerController.h"
 #include "Player/SGPlayerState.h"
 #include "SGComponents/CombatComponent.h"
 #include "SGComponents/InventoryComponent.h"
@@ -380,6 +381,15 @@ void ASGCharacter::InitAbilityActorInfo()
 	SGPlayerState->GetAbilitySystemComponent()->InitAbilityActorInfo(SGPlayerState, this);
 	AbilitySystemComponent = SGPlayerState->GetAbilitySystemComponent();
 	AttributeSet = SGPlayerState->GetAttributeSet();
+
+	if(ASGPlayerController* SGPlayerController = Cast<ASGPlayerController>(GetController()))
+	{
+		if(ASGHUD* SGHUD = Cast<ASGHUD>(SGPlayerController->GetHUD()))
+		{
+			SGHUD->InitOverlay(SGPlayerController, SGPlayerState, AbilitySystemComponent, AttributeSet);
+		}
+	}
+	
 }
 
 UAbilitySystemComponent* ASGCharacter::GetAbilitySystemComponent() const

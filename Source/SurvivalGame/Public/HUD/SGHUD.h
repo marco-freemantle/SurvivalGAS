@@ -6,6 +6,11 @@
 #include "GameFramework/HUD.h"
 #include "SGHUD.generated.h"
 
+class UAttributeSet;
+class UAbilitySystemComponent;
+struct FWidgetControllerParams;
+class UOverlayWidgetController;
+class USGUserWidget;
 class UInventoryComponent;
 /**
  * 
@@ -16,7 +21,15 @@ class SURVIVALGAME_API ASGHUD : public AHUD
 	GENERATED_BODY()
 
 public:
-	virtual void DrawHUD() override;
+	void InitOverlay(APlayerController* PC, APlayerState* PS, UAbilitySystemComponent* ASC, UAttributeSet* AS);
+	
+	UOverlayWidgetController* GetOverlayWidgetController(const FWidgetControllerParams& WCParams);
+	
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<USGUserWidget> OverlayWidgetClass;
+
+	UPROPERTY()
+	TObjectPtr<USGUserWidget> OverlayWidget;
 
 	UPROPERTY(EditAnywhere, Category="Player Stats")
 	TSubclassOf<UUserWidget> CharacterSheetClass;
@@ -38,6 +51,10 @@ public:
 	UPROPERTY(BlueprintReadWrite)
 	bool bIsContainerOpen = false;
 
-protected:
-	virtual void BeginPlay() override;
+private:
+	UPROPERTY()
+	UOverlayWidgetController* OverlayWidgetController;
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<UOverlayWidgetController> OverlayWidgetControllerClass;
 };

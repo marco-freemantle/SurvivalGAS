@@ -41,6 +41,8 @@ public:
 	void TransferEquippableSlots(int32 SourceIndex, int32 DestinationIndex, UInventoryComponent* SourceInventory, EItemType ItemType, FName SlotType, FName ComingFromSlotType);
 	FItemStruct GetItemData(FName ItemID) const;
 
+	void ConsumeItem(const FName& Item);
+
 	void RemoveFromInventory(int32 Index, bool bRemoveWholeStack, bool bIsConsumed);
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)

@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Interfaces/InteractInterface.h"
-#include "Chest.generated.h"
+#include "ContainerActor.generated.h"
 
 class UInventoryComponent;
 class UWidgetComponent;
@@ -14,12 +14,12 @@ class USphereComponent;
 class USkeletalMeshComponent;
 
 UCLASS()
-class SURVIVALGAME_API AChest : public AActor, public IInteractInterface
+class SURVIVALGAME_API AContainerActor : public AActor, public IInteractInterface
 {
 	GENERATED_BODY()
 	
 public:	
-	AChest();
+	AContainerActor();
 
 	virtual void ShowPickupWidget(bool bShowWidget) override;
 	virtual void InteractWith(ASGCharacter* SGCharacter) override;
