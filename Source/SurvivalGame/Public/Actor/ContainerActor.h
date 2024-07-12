@@ -11,7 +11,7 @@ class UInventoryComponent;
 class UWidgetComponent;
 class UItemDataComponent;
 class USphereComponent;
-class USkeletalMeshComponent;
+class UStaticMeshComponent;
 
 UCLASS()
 class SURVIVALGAME_API AContainerActor : public AActor, public IInteractInterface
@@ -35,7 +35,7 @@ protected:
 
 private:
 	UPROPERTY(VisibleAnywhere, Category = "Chest Properties")
-	USkeletalMeshComponent* Mesh;
+	UStaticMeshComponent* Mesh;
 	
 	UPROPERTY(VisibleAnywhere, Category = "Chest Properties")
 	USphereComponent* AreaSphere;
